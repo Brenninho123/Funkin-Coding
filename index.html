@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Code Generator Ultimate</title>
+<title>Funkin' Coding</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -44,7 +44,6 @@ body::before{
   z-index:0;
 }
 body.lang-lua{ --accent:var(--lua); --accent-dim:#5b7cff2e; }
-mono{font-family:'JetBrains Mono',monospace;}
 .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:36px 24px 80px;}
 
 .site-header{
@@ -55,7 +54,7 @@ mono{font-family:'JetBrains Mono',monospace;}
   flex-wrap:wrap;
   border-bottom:1px solid var(--border);
   padding-bottom:24px;
-  margin-bottom:36px;
+  margin-bottom:28px;
 }
 .header-left{display:flex;align-items:center;gap:16px;}
 .logo{
@@ -65,14 +64,14 @@ mono{font-family:'JetBrains Mono',monospace;}
   font-family:'JetBrains Mono',monospace;
   font-weight:700;
   color:var(--accent);
-  font-size:14px;
+  font-size:18px;
   border-radius:6px;
   transition:color .4s ease, border-color .4s ease;
   flex-shrink:0;
 }
 h1{
   font-size:22px;
-  letter-spacing:2px;
+  letter-spacing:1px;
   font-weight:700;
 }
 .tagline{
@@ -116,6 +115,28 @@ h1{
   box-shadow:0 0 10px var(--accent-dim);
 }
 body.lang-lua .switch-thumb{left:27px;}
+
+.tabs{
+  display:flex;
+  gap:6px;
+  margin-bottom:28px;
+  border-bottom:1px solid var(--border);
+}
+.tab-btn{
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  letter-spacing:1.5px;
+  background:none;
+  border:none;
+  color:var(--dim);
+  padding:12px 18px;
+  cursor:pointer;
+  border-bottom:2px solid transparent;
+  transition:all .2s ease;
+}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
 
 .workspace{
   display:grid;
@@ -214,19 +235,8 @@ select:focus, input:focus{border-color:var(--accent);}
   overflow-x:auto;
   white-space:pre;
 }
-.code-output .kw{color:var(--accent);}
-.code-output .str{color:var(--ok);}
-.code-output .empty{color:var(--dimmer);font-style:normal;}
-.cursor{
-  display:inline-block;
-  width:8px;height:15px;
-  background:var(--accent);
-  vertical-align:middle;
-  animation:blink 1s steps(1) infinite;
-}
-@keyframes blink{50%{opacity:0;}}
 
-.library h2{
+.library h2, .tutorials h2{
   font-family:'JetBrains Mono',monospace;
   font-size:13px;
   letter-spacing:2px;
@@ -262,8 +272,78 @@ select:focus, input:focus{border-color:var(--accent);}
 .cart-title{font-size:15px;font-weight:600;margin-bottom:6px;}
 .cart-desc{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--dim);line-height:1.5;}
 
+.tutorials{margin-bottom:56px;}
+.tut-list{display:flex;flex-direction:column;gap:10px;}
+.tut-item{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+}
+.tut-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 20px;
+  cursor:pointer;
+}
+.tut-head-title{display:flex;align-items:center;gap:14px;}
+.tut-num{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--accent);
+  border:1px solid var(--border);
+  width:26px;height:26px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.tut-title{font-size:15px;font-weight:600;}
+.tut-chevron{
+  font-family:'JetBrains Mono',monospace;
+  color:var(--dim);
+  transition:transform .25s ease;
+  flex-shrink:0;
+}
+.tut-item.open .tut-chevron{transform:rotate(45deg);}
+.tut-body{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .3s ease;
+  padding:0 20px;
+}
+.tut-item.open .tut-body{padding:0 20px 20px;}
+.tut-body p{
+  font-size:13.5px;
+  line-height:1.7;
+  color:var(--dim);
+  margin-bottom:10px;
+}
+.tut-body p:last-child{margin-bottom:0;}
+.tut-body code{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  padding:1px 6px;
+  border-radius:4px;
+  color:var(--text);
+  font-size:12.5px;
+}
+.tut-body pre{
+  font-family:'JetBrains Mono',monospace;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:12px 14px;
+  font-size:12.5px;
+  overflow-x:auto;
+  color:var(--text);
+  margin:10px 0;
+  white-space:pre;
+}
+
 footer{
-  margin-top:60px;
+  margin-top:20px;
   text-align:center;
   font-family:'JetBrains Mono',monospace;
   font-size:11px;
@@ -277,10 +357,10 @@ footer{
 
 <header class="site-header">
   <div class="header-left">
-    <div class="logo">CGU</div>
+    <div class="logo">FC</div>
     <div>
-      <h1>CODE GENERATOR ULTIMATE</h1>
-      <div class="tagline">HScript / Lua boilerplate for FNF engines</div>
+      <h1>FUNKIN' CODING</h1>
+      <div class="tagline">HScript / Lua snippet generator + tutorials for FNF engines</div>
     </div>
   </div>
   <div class="lang-switch" id="langSwitch">
@@ -290,7 +370,13 @@ footer{
   </div>
 </header>
 
-<main>
+<div class="tabs">
+  <button class="tab-btn active" data-tab="generator">GENERATOR</button>
+  <button class="tab-btn" data-tab="library">CARTRIDGES</button>
+  <button class="tab-btn" data-tab="tutorials">TUTORIALS</button>
+</div>
+
+<div class="tab-panel active" id="tab-generator">
   <section class="workspace">
     <div class="panel form-panel">
       <span class="field-label">Snippet Category</span>
@@ -301,7 +387,7 @@ footer{
 
     <div class="panel output-panel">
       <div class="terminal-header">
-        <span class="cmd-line">$ cgu --lang=<b id="langLabel">haxe</b> --emit=<b id="categoryLabel">beatHit</b></span>
+        <span class="cmd-line">$ fc --lang=<b id="langLabel">haxe</b> --emit=<b id="categoryLabel">beatHit</b></span>
         <div class="term-actions">
           <button id="copyBtn">COPY</button>
           <button id="downloadBtn">DOWNLOAD</button>
@@ -310,14 +396,23 @@ footer{
       <pre class="code-output"><code id="codeOutput"></code></pre>
     </div>
   </section>
+</div>
 
+<div class="tab-panel" id="tab-library">
   <section class="library">
     <h2>READY-MADE CARTRIDGES</h2>
     <div class="cartridge-grid" id="cartridgeGrid"></div>
   </section>
-</main>
+</div>
 
-<footer>CODE GENERATOR ULTIMATE — snippets are boilerplate, verify against your engine's API before shipping</footer>
+<div class="tab-panel" id="tab-tutorials">
+  <section class="tutorials">
+    <h2>TUTORIALS</h2>
+    <div class="tut-list" id="tutList"></div>
+  </section>
+</div>
+
+<footer>FUNKIN' CODING — snippets are boilerplate, verify against your engine's API before shipping</footer>
 </div>
 
 <script>
@@ -361,10 +456,50 @@ const schema = {
     fields: [
       {key:'scriptName', label:'Script file name', type:'text', default:'MyScript'}
     ]
+  },
+  ratingChange: {
+    title: 'Judgement Text Override',
+    fields: [
+      {key:'ratingName', label:'Display text', type:'text', default:'Perfect!'},
+      {key:'ratingImage', label:'Splash animation name', type:'text', default:'sick'}
+    ]
+  },
+  keybind: {
+    title: 'Custom Keybind Check',
+    fields: [
+      {key:'keyName', label:'Key (e.g. R, F1, ESCAPE)', type:'text', default:'R'}
+    ]
+  },
+  discordPresence: {
+    title: 'Discord Rich Presence',
+    fields: [
+      {key:'details', label:'Details line', type:'text', default:'Playing a song'},
+      {key:'state', label:'State line', type:'text', default:'Freeplay'}
+    ]
+  },
+  characterReposition: {
+    title: 'Character Reposition',
+    fields: [
+      {key:'characterName', label:'Character variable', type:'text', default:'gf'},
+      {key:'xOffset', label:'X offset', type:'text', default:'0'},
+      {key:'yOffset', label:'Y offset', type:'text', default:'-20'}
+    ]
+  },
+  comboPopup: {
+    title: 'Combo Milestone Popup',
+    fields: [
+      {key:'comboThreshold', label:'Combo count', type:'number', default:50},
+      {key:'message', label:'Popup text', type:'text', default:'ON FIRE!'}
+    ]
+  },
+  shakeOnSick: {
+    title: 'Screen Shake On Sick Note',
+    fields: [
+      {key:'shakeIntensity', label:'Shake intensity', type:'text', default:'0.02'},
+      {key:'shakeDuration', label:'Shake duration (seconds)', type:'text', default:'0.1'}
+    ]
   }
 };
-
-function fnName(lang, base){ return base; }
 
 function generate(lang, category, v){
   const isHaxe = lang === 'haxe';
@@ -404,6 +539,37 @@ function generate(lang, category, v){
       ? `function onCreate()\n{\n}\n\nfunction onCreatePost()\n{\n}\n\nfunction onUpdate(elapsed:Float)\n{\n}\n\nfunction onDestroy()\n{\n}`
       : `function onCreate()\nend\n\nfunction onCreatePost()\nend\n\nfunction onUpdate(elapsed)\nend\n\nfunction onDestroy()\nend`;
   }
+  if(category === 'ratingChange'){
+    return isHaxe
+      ? `function onUpdateScore(miss:Bool)\n{\n    if (!miss)\n    {\n        comboText.text = '${v.ratingName}';\n        setPropertyFromGroup('grpNoteSplashes', -1, 'animation', '${v.ratingImage}');\n    }\n}`
+      : `function onUpdateScore(miss)\n    if not miss then\n        setProperty('comboText.text', '${v.ratingName}')\n        setPropertyFromGroup('grpNoteSplashes', -1, 'animation', '${v.ratingImage}')\n    end\nend`;
+  }
+  if(category === 'keybind'){
+    const luaKey = String(v.keyName || '').toLowerCase();
+    return isHaxe
+      ? `function onUpdate(elapsed:Float)\n{\n    if (FlxG.keys.justPressed.${v.keyName.toUpperCase()})\n    {\n        resetSong();\n    }\n}`
+      : `function onUpdate(elapsed)\n    if keyboardJustPressed('${luaKey}') then\n        resetSong()\n    end\nend`;
+  }
+  if(category === 'discordPresence'){
+    return isHaxe
+      ? `function onCreate()\n{\n    DiscordClient.changePresence('${v.details}', '${v.state}');\n}`
+      : `function onCreate()\n    changePresence('${v.details}', '${v.state}', nil, true)\nend`;
+  }
+  if(category === 'characterReposition'){
+    return isHaxe
+      ? `function onCreatePost()\n{\n    ${v.characterName}.x += ${v.xOffset};\n    ${v.characterName}.y += ${v.yOffset};\n}`
+      : `function onCreatePost()\n    setProperty('${v.characterName}.x', getProperty('${v.characterName}.x') + ${v.xOffset})\n    setProperty('${v.characterName}.y', getProperty('${v.characterName}.y') + ${v.yOffset})\nend`;
+  }
+  if(category === 'comboPopup'){
+    return isHaxe
+      ? `function onUpdateScore(miss:Bool)\n{\n    if (combo == ${v.comboThreshold})\n    {\n        var popup:FlxText = new FlxText(0, 100, FlxG.width, '${v.message}');\n        popup.setFormat(null, 32, FlxColor.WHITE, CENTER);\n        popup.cameras = [camHUD];\n        popup.screenCenter(X);\n        addLuaSprite('comboPopup', popup);\n        FlxTween.tween(popup, {alpha: 0}, 1, {startDelay: 0.5, onComplete: function(_) removeLuaSprite('comboPopup', true)});\n    }\n}`
+      : `function onUpdateScore(miss)\n    if combo == ${v.comboThreshold} then\n        makeLuaText('comboPopup', '${v.message}', 0, FlxG.width, 100)\n        setTextSize('comboPopup', 32)\n        addLuaText('comboPopup')\n        screenCenter('comboPopup', 'x')\n        setObjectCamera('comboPopup', 'camHUD')\n        tweenAlpha('comboPopupTween', 'comboPopup', 0, 1, 'linear')\n    end\nend`;
+  }
+  if(category === 'shakeOnSick'){
+    return isHaxe
+      ? `function onUpdateScore(miss:Bool)\n{\n    if (!miss && ratingName == 'sick')\n    {\n        camGame.shake(${v.shakeIntensity}, ${v.shakeDuration});\n    }\n}`
+      : `function onUpdateScore(miss)\n    if not miss and ratingName == 'sick' then\n        camShake('camGame', ${v.shakeIntensity}, ${v.shakeDuration})\n    end\nend`;
+  }
   return '';
 }
 
@@ -419,7 +585,44 @@ const cartridges = [
   {lang:'haxe', title:'Combo Break Camera Shake', tag:'HAXE', desc:'Shakes the game camera briefly whenever the combo resets.',
    code:`function onNoteMiss(note:Note)\n{\n    if (combo <= 0)\n    {\n        camGame.shake(0.01, 0.15);\n    }\n}`},
   {lang:'lua', title:'Note Splash Color Override', tag:'LUA', desc:'Forces note splashes to match a fixed hex color per lane.',
-   code:`function onNoteHit(id, direction, noteType, isSustainNote)\n    if noteType == '' then\n        setPropertyFromGroup('grpNoteSplashes', -1, 'color', '#ff4fd8')\n    end\nend`}
+   code:`function onNoteHit(id, direction, noteType, isSustainNote)\n    if noteType == '' then\n        setPropertyFromGroup('grpNoteSplashes', -1, 'color', '#ff4fd8')\n    end\nend`},
+  {lang:'haxe', title:'Custom Pause Menu Option', tag:'HAXE', desc:'Adds an extra selectable option to the pause menu list.',
+   code:`function onPause()\n{\n    if (pauseMusic != null)\n    {\n        pauseOptions.push('Restart With Modifiers');\n    }\n}\n\nfunction onPauseOptionSelected(option:String)\n{\n    if (option == 'Restart With Modifiers')\n    {\n        MusicBeatState.switchState(new modifiers.ModifierMenu());\n    }\n}`},
+  {lang:'lua', title:'Freeplay Song Sort Override', tag:'LUA', desc:'Reorders the freeplay song list alphabetically on load.',
+   code:`function onCreate()\n    table.sort(freeplaySongs)\nend`}
+];
+
+const tutorials = [
+  {title:'HScript vs Lua: what actually changes', body:`
+    <p>Both languages hook into the same engine lifecycle, so the function names you override (<code>onCreate</code>, <code>onBeatHit</code>, <code>onNoteHit</code>...) are shared. What changes is syntax and how you touch objects.</p>
+    <p>HScript reads like normal Haxe: curly braces, semicolons, typed declarations, and direct property access like <code>character.x</code>. Lua uses <code>then / end</code> blocks, no semicolons, and leans on helper calls like <code>setProperty</code> and <code>getProperty</code> because Lua scripts can't reach Haxe objects directly.</p>
+    <p>Pick HScript when you want closer engine access and don't mind Haxe-like syntax. Pick Lua when you want a script that runs unmodified across more Psych Engine forks, since the Lua API surface is more standardized.</p>
+  `},
+  {title:'The script lifecycle, in order', body:`
+    <p>Every script runs through the same sequence each song. Knowing the order tells you where to put setup code versus per-frame logic.</p>
+    <pre>onCreate()        -> before the stage loads
+onCreatePost()    -> right after the stage finishes loading
+onStartCountdown()-> when the 3-2-1 begins
+onUpdate(elapsed) -> every single frame
+onStepHit()       -> every chart step
+onBeatHit()       -> every 4 steps
+onNoteHit() / onNoteMiss() -> per note
+onEndSong()       -> after the last note
+onDestroy()       -> when the state closes</pre>
+    <p>Position changes and object creation belong in <code>onCreatePost</code>, not <code>onCreate</code> — the stage isn't fully built yet at that point.</p>
+  `},
+  {title:'Reading custom events from the chart', body:`
+    <p>Events are the placed markers you add in the chart editor. Every event fires <code>onEvent(eventName, value1, value2)</code>, where <code>value1</code> and <code>value2</code> are whatever strings you typed into the event's two fields in the editor.</p>
+    <p>Match on <code>eventName</code> first, then branch on the values if the same event needs different behavior depending on what was typed. This keeps one script handling many event variants instead of writing a new function per event.</p>
+  `},
+  {title:'Where custom notes plug in', body:`
+    <p>A custom note type is just a string tag you set on a note inside the chart editor. In your script, that tag arrives as <code>note.noteType</code> (HScript) or the <code>noteType</code> argument (Lua) inside the hit and miss callbacks.</p>
+    <p>Common uses: bonus-score notes, notes that trigger an animation instead of damage, or notes that get skipped entirely by returning early before the default scoring runs.</p>
+  `},
+  {title:'Debugging without breaking the build', body:`
+    <p>Since scripts run inside the compiled engine, the fastest debugging loop is usually: change one function at a time, reload the song, and confirm the specific behavior you touched. Isolating one function per test avoids chasing an unrelated bug.</p>
+    <p>For values you need to inspect over time, write them to a small on-screen text object rather than the console — it keeps the feedback visible during actual gameplay, which matters for anything frame- or beat-timed.</p>
+  `}
 ];
 
 const categorySelect = document.getElementById('categorySelect');
@@ -546,11 +749,44 @@ cartridges.forEach(c => {
   `;
   card.addEventListener('click', () => {
     setLang(c.lang);
+    document.querySelector('.tab-btn[data-tab="generator"]').click();
     categoryLabel.textContent = c.title.toLowerCase().replace(/\s+/g, '-');
     typeOut(c.code);
-    document.querySelector('.output-panel').scrollIntoView({behavior:'smooth', block:'center'});
   });
   cartridgeGrid.appendChild(card);
+});
+
+const tutList = document.getElementById('tutList');
+tutorials.forEach((t, idx) => {
+  const item = document.createElement('div');
+  item.className = 'tut-item';
+  item.innerHTML = `
+    <div class="tut-head">
+      <div class="tut-head-title">
+        <span class="tut-num">${idx + 1}</span>
+        <span class="tut-title">${t.title}</span>
+      </div>
+      <span class="tut-chevron">+</span>
+    </div>
+    <div class="tut-body">${t.body}</div>
+  `;
+  const head = item.querySelector('.tut-head');
+  const body = item.querySelector('.tut-body');
+  head.addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    item.classList.toggle('open', !isOpen);
+    body.style.maxHeight = isOpen ? '0' : body.scrollHeight + 'px';
+  });
+  tutList.appendChild(item);
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
 });
 
 renderFields('beatHit');
