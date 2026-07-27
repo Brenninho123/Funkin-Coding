@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `funkin-coding-${CACHE_VERSION}`;
 
 const PRECACHE_ASSETS = [
@@ -9,8 +9,7 @@ const PRECACHE_ASSETS = [
   './icons/icon-32.png',
   './icons/icon-180.png',
   './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon.svg'
+  './icons/icon-512.png'
 ];
 
 const isNavigationRequest = request =>
