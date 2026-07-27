@@ -32,6 +32,14 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;}
+::selection{background:var(--accent);color:#0b0b12;}
+::-webkit-scrollbar{width:10px;height:8px;}
+::-webkit-scrollbar-track{background:var(--panel2);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+*{scrollbar-color:var(--border) var(--panel2);scrollbar-width:thin;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+button, select, input, textarea{font-family:inherit;}
 body{
   min-height:100vh;
   background-image:
@@ -75,7 +83,8 @@ body.lang-lua{ --accent:var(--lua); --accent-dim:#5b7cff2e; }
   color:var(--accent);
   font-size:18px;
   border-radius:6px;
-  transition:color .4s ease, border-color .4s ease;
+  transition:color .4s ease, border-color .4s ease, box-shadow .4s ease;
+  box-shadow:0 0 18px var(--accent-dim);
   flex-shrink:0;
 }
 h1{
@@ -170,7 +179,11 @@ body.lang-lua .switch-thumb{left:27px;}
 }
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-panel{display:none;}
-.tab-panel.active{display:block;}
+.tab-panel.active{display:block;animation:tabFade .25s ease;}
+@keyframes tabFade{
+  from{opacity:0;transform:translateY(4px);}
+  to{opacity:1;transform:translateY(0);}
+}
 
 .workspace{
   display:grid;
@@ -185,6 +198,16 @@ body.lang-lua .switch-thumb{left:27px;}
   border:1px solid var(--border);
   border-radius:10px;
   overflow:hidden;
+  position:relative;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);
+}
+.panel::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg, var(--haxe), var(--lua));
+  opacity:.55;
 }
 .form-panel{padding:22px;}
 .field-label{
@@ -224,8 +247,10 @@ select:focus, input:focus{border-color:var(--accent);}
   padding:13px;
   border-radius:6px;
   cursor:pointer;
-  transition:background .3s ease, transform .1s ease;
+  transition:background .3s ease, transform .1s ease, box-shadow .3s ease;
+  box-shadow:0 0 0 rgba(0,0,0,0);
 }
+#generateBtn:hover{box-shadow:0 4px 20px var(--accent-dim);transform:translateY(-1px);}
 #generateBtn:active{transform:scale(.98);}
 
 .output-panel{display:flex;flex-direction:column;min-height:380px;}
@@ -288,10 +313,26 @@ select:focus, input:focus{border-color:var(--accent);}
   border-radius:8px;
   padding:18px;
   cursor:pointer;
-  transition:border-color .2s ease, transform .15s ease;
+  transition:border-color .2s ease, transform .15s ease, box-shadow .2s ease;
   position:relative;
+  overflow:hidden;
 }
-.cartridge:hover{border-color:var(--card-accent, var(--accent));transform:translateY(-2px);}
+.cartridge::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:var(--card-accent, var(--accent));
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform .25s ease;
+}
+.cartridge:hover{
+  border-color:var(--card-accent, var(--accent));
+  transform:translateY(-3px);
+  box-shadow:0 10px 26px rgba(0,0,0,.35);
+}
+.cartridge:hover::before{transform:scaleX(1);}
 .cart-tag{
   font-family:'JetBrains Mono',monospace;
   font-size:10px;
@@ -413,8 +454,9 @@ textarea#aiPrompt:focus{border-color:var(--accent);}
   padding:13px;
   border-radius:6px;
   cursor:pointer;
-  transition:background .3s ease, transform .1s ease, opacity .2s ease;
+  transition:background .3s ease, transform .1s ease, opacity .2s ease, box-shadow .3s ease;
 }
+#aiGenerateBtn:hover:not(:disabled){box-shadow:0 4px 20px var(--accent-dim);transform:translateY(-1px);}
 #aiGenerateBtn:active{transform:scale(.98);}
 #aiGenerateBtn:disabled{opacity:.5;cursor:default;}
 .ai-status{
@@ -565,7 +607,10 @@ body.engine-vslice .anim-header{grid-template-columns:1fr 1fr 80px 60px 60px 1fr
   padding:13px;
   border-radius:6px;
   cursor:pointer;
+  transition:box-shadow .3s ease, transform .1s ease;
 }
+#generateCharBtn:hover{box-shadow:0 4px 20px var(--accent-dim);transform:translateY(-1px);}
+#generateCharBtn:active{transform:scale(.98);}
 
 footer{
   margin-top:20px;
@@ -1284,7 +1329,9 @@ const cartridges = [
   {lang:'haxe', engine:'vslice', title:'Song Event Camera Snap', tag:'V-SLICE', desc:'Snaps the camera follow point back to center when a custom chart event fires.',
    code:`import funkin.play.PlayState;\nimport funkin.modding.module.Module;\nimport funkin.modding.events.SongEventScriptEvent;\nimport flixel.FlxG;\n\nclass SongEventCameraSnap extends Module\n{\n\tfunction new()\n\t{\n\t\tsuper('SongEventCameraSnap', 0, {state: PlayState});\n\t}\n\n\toverride function onSongEvent(event:SongEventScriptEvent)\n\t{\n\t\tsuper.onSongEvent(event);\n\n\t\tif (event.eventData.eventKind == 'CamSnap')\n\t\t{\n\t\t\tPlayState.instance.cameraFollowPoint.setPosition(\n\t\t\t\tFlxG.camera.scroll.x + FlxG.camera.width * 0.5,\n\t\t\t\tFlxG.camera.scroll.y + FlxG.camera.height * 0.5\n\t\t\t);\n\t\t}\n\t}\n}`},
   {lang:'haxe', engine:'vslice', title:'Custom Preferences Menu Toggle', tag:'V-SLICE', desc:'Adds a persistent checkbox to the options menu that toggles a custom mod behavior, saved between sessions.',
-   code:`import funkin.modding.module.Module;\nimport funkin.modding.events.StateChangeScriptEvent;\nimport funkin.ui.options.OptionsState;\nimport funkin.save.Save;\n\nclass CustomOptionToggle extends Module\n{\n\tstatic final SAVE_ID:String = 'CustomOptionToggle';\n\n\tfunction new()\n\t{\n\t\tsuper('CustomOptionToggle', 0);\n\t}\n\n\tstatic var enabled(get, set):Bool;\n\n\tstatic function get_enabled():Bool\n\t{\n\t\treturn Save.instance.modOptions.exists(SAVE_ID) ? Save.instance.modOptions[SAVE_ID] : false;\n\t}\n\n\tstatic function set_enabled(value:Bool):Bool\n\t{\n\t\tSave.instance.modOptions[SAVE_ID] = value;\n\t\tSave.instance.flush();\n\t\treturn value;\n\t}\n\n\tpublic override function onStateChangeEnd(event:StateChangeScriptEvent)\n\t{\n\t\tsuper.onStateChangeEnd(event);\n\n\t\tif (event.targetState is OptionsState)\n\t\t{\n\t\t\tvar prefsMenu = event.targetState.optionsCodex.pages.get('preferences');\n\n\t\t\tprefsMenu.createPrefItemCheckbox('Custom Mod Behavior',\n\t\t\t\t'Toggles the custom behavior added by this mod.',\n\t\t\t\t(value) -> enabled = value, enabled);\n\t\t}\n\t}\n}`}
+   code:`import funkin.modding.module.Module;\nimport funkin.modding.events.StateChangeScriptEvent;\nimport funkin.ui.options.OptionsState;\nimport funkin.save.Save;\n\nclass CustomOptionToggle extends Module\n{\n\tstatic final SAVE_ID:String = 'CustomOptionToggle';\n\n\tfunction new()\n\t{\n\t\tsuper('CustomOptionToggle', 0);\n\t}\n\n\tstatic var enabled(get, set):Bool;\n\n\tstatic function get_enabled():Bool\n\t{\n\t\treturn Save.instance.modOptions.exists(SAVE_ID) ? Save.instance.modOptions[SAVE_ID] : false;\n\t}\n\n\tstatic function set_enabled(value:Bool):Bool\n\t{\n\t\tSave.instance.modOptions[SAVE_ID] = value;\n\t\tSave.instance.flush();\n\t\treturn value;\n\t}\n\n\tpublic override function onStateChangeEnd(event:StateChangeScriptEvent)\n\t{\n\t\tsuper.onStateChangeEnd(event);\n\n\t\tif (event.targetState is OptionsState)\n\t\t{\n\t\t\tvar prefsMenu = event.targetState.optionsCodex.pages.get('preferences');\n\n\t\t\tprefsMenu.createPrefItemCheckbox('Custom Mod Behavior',\n\t\t\t\t'Toggles the custom behavior added by this mod.',\n\t\t\t\t(value) -> enabled = value, enabled);\n\t\t}\n\t}\n}`},
+  {lang:'haxe', engine:'vslice', title:'Sustain Note Idle Fix', tag:'V-SLICE', desc:'Keeps characters from breaking into their idle animation mid-hold-note by resetting their hold timer every step.',
+   code:`import funkin.play.PlayState;\nimport funkin.modding.module.Module;\n\nclass SustainNoteIdleFix extends Module\n{\n\tfunction new()\n\t{\n\t\tsuper('SustainNoteIdleFix');\n\t}\n\n\toverride function onStepHit(event)\n\t{\n\t\tsuper.onStepHit(event);\n\n\t\tvar game = PlayState.instance;\n\t\tif (game == null || game.currentStage == null) return;\n\n\t\tcheckStrumline(game.playerStrumline, game.currentStage.getBoyfriend());\n\t\tcheckStrumline(game.opponentStrumline, game.currentStage.getDad());\n\t}\n\n\tfunction checkStrumline(strumline:Dynamic, character:Dynamic):Void\n\t{\n\t\tif (strumline == null || character == null) return;\n\n\t\tfor (holdNote in strumline.holdNotes.members)\n\t\t{\n\t\t\tif (holdNote == null || !holdNote.alive) continue;\n\t\t\tif (!holdNote.hitNote || holdNote.missedNote || holdNote.sustainLength <= 0) continue;\n\n\t\t\tif (character.isSinging())\n\t\t\t{\n\t\t\t\tcharacter.holdTimer = 0;\n\t\t\t}\n\t\t}\n\t}\n}`}
 ];
 
 const tutorials = [
