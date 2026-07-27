@@ -504,9 +504,9 @@ footer{
 <div class="tab-panel" id="tab-ai">
   <section class="workspace">
     <div class="panel ai-panel">
-      <div class="ai-intro">Describe the behavior you want in your own words. The AI writes it as a ready <b id="aiLangHint">HScript</b> function for your engine.</div>
-      <span class="field-label" style="margin-top:0">What should the script do</span>
-      <textarea id="aiPrompt" placeholder="e.g. every time the player hits a note during the last section of the song, tint the note splashes gold"></textarea>
+      <div class="ai-intro">Describe anything — a small snippet, a full multi-function script, a custom substate, a menu, whole system logic. The AI writes it as ready <b id="aiLangHint">HScript</b> code for your engine.</div>
+      <span class="field-label" style="margin-top:0">What should the code do</span>
+      <textarea id="aiPrompt" placeholder="e.g. a full script that changes the camera zoom, note skin, and background character animation together every 16 beats, with all the tunable numbers as variables at the top"></textarea>
       <button id="aiGenerateBtn">GENERATE WITH AI</button>
       <div class="ai-status" id="aiStatus"></div>
     </div>
@@ -848,7 +848,17 @@ const cartridges = [
   {lang:'haxe', title:'Custom Pause Menu Option', tag:'HAXE', desc:'Adds an extra selectable option to the pause menu list.',
    code:`function onPause()\n{\n    if (pauseMusic != null)\n    {\n        pauseOptions.push('Restart With Modifiers');\n    }\n}\n\nfunction onPauseOptionSelected(option:String)\n{\n    if (option == 'Restart With Modifiers')\n    {\n        MusicBeatState.switchState(new modifiers.ModifierMenu());\n    }\n}`},
   {lang:'lua', title:'Freeplay Song Sort Override', tag:'LUA', desc:'Reorders the freeplay song list alphabetically on load.',
-   code:`function onCreate()\n    table.sort(freeplaySongs)\nend`}
+   code:`function onCreate()\n    table.sort(freeplaySongs)\nend`},
+  {lang:'lua', title:'Direction-Based Camera Punch', tag:'LUA', desc:'Nudges the camera toward whichever arrow you hit, then eases back. Advanced multi-function script.',
+   code:`local punchDistance = 45\nlocal punchDuration = 0.12\nlocal baseCamX = 0\nlocal baseCamY = 0\n\nfunction onCreatePost()\n    baseCamX = getProperty('camFollow.x')\n    baseCamY = getProperty('camFollow.y')\nend\n\nfunction goodNoteHit(id, direction, noteType, isSustainNote)\n    local offsetX = 0\n    local offsetY = 0\n    if direction == 0 then\n        offsetX = -punchDistance\n    elseif direction == 1 then\n        offsetY = punchDistance\n    elseif direction == 2 then\n        offsetY = -punchDistance\n    elseif direction == 3 then\n        offsetX = punchDistance\n    end\n    setProperty('camFollow.x', baseCamX + offsetX)\n    setProperty('camFollow.y', baseCamY + offsetY)\n    doTweenX('camPunchX', 'camFollow', baseCamX, punchDuration, 'quadOut')\n    doTweenY('camPunchY', 'camFollow', baseCamY, punchDuration, 'quadOut')\nend`},
+  {lang:'lua', title:'Health-Linked Song Pitch', tag:'LUA', desc:'Speeds up or slows down playback pitch based on how much health you have left.',
+   code:`local minPitch = 0.85\nlocal maxPitch = 1.15\n\nfunction onUpdate(elapsed)\n    local healthPercent = health / 2\n    local pitch = minPitch + (maxPitch - minPitch) * healthPercent\n    setProperty('playbackRate', pitch)\nend`},
+  {lang:'lua', title:'Combo Streak Tint Overlay', tag:'LUA', desc:'Fades in a colored screen tint as your combo climbs, clears the moment you miss.',
+   code:`local tintStartCombo = 20\nlocal tintRange = 50\nlocal maxTintAlpha = 0.35\n\nfunction onCreatePost()\n    makeLuaSprite('comboTint', nil, 0, 0)\n    makeGraphic('comboTint', FlxG.width, FlxG.height, 'FFE94F')\n    setProperty('comboTint.alpha', 0)\n    addLuaSprite('comboTint', false)\n    setObjectCamera('comboTint', 'camHUD')\nend\n\nfunction onUpdateScore(miss)\n    if miss then\n        setProperty('comboTint.alpha', 0)\n    else\n        local progress = math.min((combo - tintStartCombo) / tintRange, 1)\n        if progress > 0 then\n            setProperty('comboTint.alpha', progress * maxTintAlpha)\n        end\n    end\nend`},
+  {lang:'lua', title:'BPM Strobe Background', tag:'LUA', desc:'Flashes a full-screen strobe on a fixed beat interval, synced to the song.',
+   code:`local strobeEvery = 8\nlocal strobeColor = 'FFFFFF'\nlocal strobeFade = 0.2\n\nfunction onCreatePost()\n    makeLuaSprite('strobeFlash', nil, 0, 0)\n    makeGraphic('strobeFlash', FlxG.width, FlxG.height, strobeColor)\n    setProperty('strobeFlash.alpha', 0)\n    addLuaSprite('strobeFlash', false)\n    setObjectCamera('strobeFlash', 'camHUD')\nend\n\nfunction onBeatHit()\n    if curBeat % strobeEvery == 0 then\n        setProperty('strobeFlash.alpha', 0.4)\n        doTweenAlpha('strobeFade', 'strobeFlash', 0, strobeFade, 'quadOut')\n    end\nend`},
+  {lang:'lua', title:'Judgement Zoom Kick', tag:'LUA', desc:'Gives the game camera a tiny permanent zoom kick on Sick and Good hits.',
+   code:`local sickZoom = 0.015\nlocal goodZoom = 0.008\n\nfunction onUpdateScore(miss)\n    if miss then\n        return\n    end\n    if ratingName == 'sick' then\n        setProperty('camGame.zoom', getProperty('camGame.zoom') + sickZoom)\n    elseif ratingName == 'good' then\n        setProperty('camGame.zoom', getProperty('camGame.zoom') + goodZoom)\n    end\nend`}
 ];
 
 const tutorials = [
@@ -1082,7 +1092,7 @@ async function generateWithAI(){
   aiStatus.className = 'ai-status';
 
   const langName = currentLang === 'haxe' ? 'HScript (Psych Engine, Haxe-like syntax)' : 'Lua (Psych Engine Lua API)';
-  const systemPrompt = `You write short ${langName} scripts for Friday Night Funkin' engine mods. Output ONLY the raw code, no markdown fences, no explanation, no comments inside the code. Use the standard Psych Engine callback functions (onCreate, onCreatePost, onUpdate, onBeatHit, onStepHit, onNoteHit, onNoteMiss, onEvent, onUpdateScore, etc) and helper calls (setProperty, getProperty, addScore) where relevant. Keep it focused on exactly what was asked.`;
+  const systemPrompt = `You are an expert Friday Night Funkin' engine modder writing production-ready ${langName} code. You can write anything the person asks for: a single callback, a full multi-function script with config variables at the top, a custom substate class, HUD elements, menus, tween-driven effects, or complete systems that combine several engine hooks together. Use the standard Psych Engine callback functions (onCreate, onCreatePost, onUpdate, onBeatHit, onStepHit, onNoteHit/goodNoteHit, onNoteMiss, onEvent, onUpdateScore, onPause, onTimerCompleted, etc), tween/timer helpers (doTweenX, doTweenY, doTweenAlpha, runTimer), and property helpers (setProperty, getProperty, setPropertyFromGroup) where relevant. When something needs tunable values, declare them as clearly named variables at the top of the script rather than hardcoding numbers inline. Match the real syntax of the target language exactly. Output ONLY the raw code — no markdown fences, no explanation before or after, no comments inside the code. If the request is ambiguous, make the most reasonable engine-accurate choice and keep going rather than asking for clarification.`;
 
   try{
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1090,7 +1100,7 @@ async function generateWithAI(){
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
+        max_tokens: 4000,
         system: systemPrompt,
         messages: [{role: 'user', content: description}]
       })
