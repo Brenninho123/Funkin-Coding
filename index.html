@@ -4,6 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Funkin' Coding</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/icon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/icon-16.png">
+<link rel="apple-touch-icon" href="./icons/icon-180.png">
+<meta name="theme-color" content="#0b0b12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Funkin' Coding">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -115,6 +124,25 @@ h1{
   box-shadow:0 0 10px var(--accent-dim);
 }
 body.lang-lua .switch-thumb{left:27px;}
+
+#installBtn{
+  display:none;
+  align-items:center;
+  gap:8px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:1px;
+  background:transparent;
+  border:1.5px solid var(--accent);
+  color:var(--accent);
+  padding:9px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  transition:background .2s ease, color .2s ease;
+}
+#installBtn:hover{background:var(--accent);color:#0b0b12;}
+#installBtn.visible{display:inline-flex;}
 
 .tabs{
   display:flex;
@@ -427,6 +455,7 @@ footer{
     <div class="switch-track" id="switchTrack"><div class="switch-thumb"></div></div>
     <button data-lang="lua" id="btnLua">LUA</button>
   </div>
+  <button id="installBtn">⤓ INSTALL APP</button>
 </header>
 
 <div class="tabs">
@@ -622,6 +651,47 @@ const schema = {
       {key:'substateName', label:'Substate class name', type:'text', default:'InfoPopup'},
       {key:'keyName', label:'Key that opens it', type:'text', default:'F2'}
     ]
+  },
+  scrollSpeedChange: {
+    title: 'Scroll Speed Change',
+    fields: [
+      {key:'newSpeed', label:'New scroll speed', type:'text', default:'2.2'},
+      {key:'triggerBeat', label:'Trigger on beat', type:'number', default:32}
+    ]
+  },
+  forcedMiss: {
+    title: 'Force Note Miss',
+    fields: [
+      {key:'noteDirection', label:'Direction', type:'select', options:['Left','Down','Up','Right'], default:'Down'},
+      {key:'triggerStep', label:'Trigger on step', type:'number', default:48}
+    ]
+  },
+  failScreenMessage: {
+    title: 'Custom Fail Screen Message',
+    fields: [
+      {key:'message', label:'Message text', type:'text', default:'Better luck next time'}
+    ]
+  },
+  player2Toggle: {
+    title: 'Enable Player 2 Controls',
+    fields: [
+      {key:'enabled', label:'Allow player 2 to join', type:'select', options:['Yes','No'], default:'Yes'}
+    ]
+  },
+  charAnimTrigger: {
+    title: 'Background Character Animation',
+    fields: [
+      {key:'characterName', label:'Character variable', type:'text', default:'gf'},
+      {key:'animName', label:'Animation name', type:'text', default:'cheer'},
+      {key:'triggerBeat', label:'Trigger on beat', type:'number', default:16}
+    ]
+  },
+  scoreMultiplierDisplay: {
+    title: 'Score Multiplier Display',
+    fields: [
+      {key:'labelText', label:'Label text', type:'text', default:'x2 SCORE'},
+      {key:'triggerCombo', label:'Trigger at combo', type:'number', default:30}
+    ]
   }
 };
 
@@ -725,6 +795,39 @@ function generate(lang, category, v){
     return isHaxe
       ? `function onUpdate(elapsed:Float)\n{\n    if (FlxG.keys.justPressed.${keyUp})\n    {\n        openSubState(new ${v.substateName}());\n    }\n}`
       : `function onUpdate(elapsed)\n    if keyboardJustPressed('${keyLow}') then\n        MusicBeatState.instance.openSubState('${v.substateName}')\n    end\nend`;
+  }
+  if(category === 'scrollSpeedChange'){
+    return isHaxe
+      ? `function onBeatHit()\n{\n    if (curBeat == ${v.triggerBeat})\n    {\n        songSpeed = ${v.newSpeed};\n    }\n}`
+      : `function onBeatHit()\n    if curBeat == ${v.triggerBeat} then\n        setSongSpeed(${v.newSpeed}, true)\n    end\nend`;
+  }
+  if(category === 'forcedMiss'){
+    const dirMap = {Left:0, Down:1, Up:2, Right:3};
+    const dirIndex = dirMap[v.noteDirection] ?? 1;
+    return isHaxe
+      ? `function onStepHit()\n{\n    if (curStep == ${v.triggerStep})\n    {\n        noteMissPress(${dirIndex});\n    }\n}`
+      : `function onStepHit()\n    if curStep == ${v.triggerStep} then\n        noteMissPress(${dirIndex})\n    end\nend`;
+  }
+  if(category === 'failScreenMessage'){
+    return isHaxe
+      ? `function onGameOver()\n{\n    gameOverText = '${v.message}';\n}`
+      : `function onGameOver()\n    setProperty('gameOverText', '${v.message}')\nend`;
+  }
+  if(category === 'player2Toggle'){
+    const boolHx = v.enabled === 'Yes' ? 'true' : 'false';
+    return isHaxe
+      ? `function onCreate()\n{\n    P2CanEnter = ${boolHx};\n}`
+      : `function onCreate()\n    setProperty('P2CanEnter', ${boolHx})\nend`;
+  }
+  if(category === 'charAnimTrigger'){
+    return isHaxe
+      ? `function onBeatHit()\n{\n    if (curBeat == ${v.triggerBeat})\n    {\n        ${v.characterName}.playAnim('${v.animName}', true);\n    }\n}`
+      : `function onBeatHit()\n    if curBeat == ${v.triggerBeat} then\n        setProperty('${v.characterName}.animation.curAnim.name', '${v.animName}')\n    end\nend`;
+  }
+  if(category === 'scoreMultiplierDisplay'){
+    return isHaxe
+      ? `function onUpdateScore(miss:Bool)\n{\n    if (combo >= ${v.triggerCombo})\n    {\n        multiplierText.text = '${v.labelText}';\n        multiplierText.visible = true;\n    }\n}`
+      : `function onUpdateScore(miss)\n    if combo >= ${v.triggerCombo} then\n        setProperty('multiplierText.text', '${v.labelText}')\n        setProperty('multiplierText.visible', true)\n    end\nend`;
   }
   return '';
 }
@@ -1026,6 +1129,33 @@ document.getElementById('aiDownloadBtn').addEventListener('click', () => {
   a.href = URL.createObjectURL(blob);
   a.download = `ai-script.${extension(currentLang)}`;
   a.click();
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+let deferredInstallPrompt = null;
+const installBtn = document.getElementById('installBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  installBtn.classList.add('visible');
+});
+
+installBtn.addEventListener('click', async () => {
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  installBtn.classList.remove('visible');
+});
+
+window.addEventListener('appinstalled', () => {
+  installBtn.classList.remove('visible');
 });
 </script>
 </body>
