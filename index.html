@@ -405,6 +405,24 @@ select:focus, input:focus{border-color:var(--accent);}
   flex-wrap:wrap;
   gap:10px;
 }
+.term-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.term-dots{
+  display:flex;
+  gap:6px;
+  flex-shrink:0;
+}
+.term-dots span{
+  width:9px;height:9px;
+  border-radius:50%;
+  display:inline-block;
+}
+.term-dots span:nth-child(1){background:#ff5f57;}
+.term-dots span:nth-child(2){background:#febc2e;}
+.term-dots span:nth-child(3){background:#28c840;}
 .cmd-line{
   font-family:'JetBrains Mono',monospace;
   font-size:12px;
@@ -435,6 +453,9 @@ select:focus, input:focus{border-color:var(--accent);}
   overflow-x:auto;
   white-space:pre;
 }
+.tok-kw{color:var(--accent);font-weight:600;}
+.tok-str{color:var(--ok);}
+.tok-num{color:#ffb84d;}
 
 .library h2, .tutorials h2{
   font-family:'JetBrains Mono',monospace;
@@ -488,6 +509,11 @@ select:focus, input:focus{border-color:var(--accent);}
   transition:border-color .2s ease, transform .15s ease, box-shadow .2s ease;
   position:relative;
   overflow:hidden;
+  animation:cardIn .3s ease backwards;
+}
+@keyframes cardIn{
+  from{opacity:0;transform:translateY(6px);}
+  to{opacity:1;transform:translateY(0);}
 }
 .cartridge::before{
   content:'';
@@ -1050,7 +1076,10 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
 
     <div class="panel output-panel">
       <div class="terminal-header">
-        <span class="cmd-line">$ fc --lang=<b id="langLabel">haxe</b> --emit=<b id="categoryLabel">beatHit</b></span>
+        <div class="term-left">
+          <div class="term-dots"><span></span><span></span><span></span></div>
+          <span class="cmd-line">$ fc --lang=<b id="langLabel">haxe</b> --emit=<b id="categoryLabel">beatHit</b></span>
+        </div>
         <div class="term-actions">
           <button id="copyBtn" data-i18n="actions.copy">COPY</button>
           <button id="downloadBtn" data-i18n="actions.download">DOWNLOAD</button>
@@ -1091,7 +1120,10 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
 
     <div class="panel output-panel">
       <div class="terminal-header">
-        <span class="cmd-line">$ fc --ai --lang=<b id="aiLangLabel">haxe</b></span>
+        <div class="term-left">
+          <div class="term-dots"><span></span><span></span><span></span></div>
+          <span class="cmd-line">$ fc --ai --lang=<b id="aiLangLabel">haxe</b></span>
+        </div>
         <div class="term-actions">
           <button id="aiCopyBtn" data-i18n="actions.copy">COPY</button>
           <button id="aiDownloadBtn" data-i18n="actions.download">DOWNLOAD</button>
@@ -1171,7 +1203,10 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
 
     <div class="panel output-panel">
       <div class="terminal-header">
-        <span class="cmd-line">$ fc --character --engine=<b id="charEngineLabel">psych</b></span>
+        <div class="term-left">
+          <div class="term-dots"><span></span><span></span><span></span></div>
+          <span class="cmd-line">$ fc --character --engine=<b id="charEngineLabel">psych</b></span>
+        </div>
         <div class="term-actions">
           <button id="charCopyBtn" data-i18n="actions.copy">COPY</button>
           <button id="charDownloadBtn" data-i18n="actions.download">DOWNLOAD</button>
@@ -2018,6 +2053,30 @@ function collectValues(category){
 
 function extension(lang){ return lang === 'haxe' ? 'hx' : 'lua'; }
 
+const SYNTAX_KEYWORDS = new Set([
+  'function','class','extends','implements','override','static','var','final',
+  'new','return','if','else','elseif','then','end','local','import','package',
+  'true','false','null','nil','void','public','private','this','super','typedef',
+  'case','switch','for','while','break','continue','in','not','and','or','do'
+]);
+
+function escapeCodeHtml(str){
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function highlightCode(raw){
+  const escaped = escapeCodeHtml(raw);
+  return escaped.replace(
+    /("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+\.?\d*\b)|(\b[A-Za-z_][A-Za-z0-9_]*\b)/g,
+    (match, str, num, word) => {
+      if(str) return `<span class="tok-str">${str}</span>`;
+      if(num) return `<span class="tok-num">${num}</span>`;
+      if(word && SYNTAX_KEYWORDS.has(word)) return `<span class="tok-kw">${word}</span>`;
+      return match;
+    }
+  );
+}
+
 function typeOut(text){
   codeOutput.textContent = '';
   let i = 0;
@@ -2027,7 +2086,7 @@ function typeOut(text){
     i++;
     if(i > text.length){
       clearInterval(interval);
-      codeOutput.textContent = text;
+      codeOutput.innerHTML = highlightCode(text);
     }
   }, speed);
 }
@@ -2135,7 +2194,11 @@ function renderCartridges(filterTerm){
         c.tag.toLowerCase().includes(term)
       )
     : cartridges;
-  filtered.forEach(c => cartridgeGrid.appendChild(buildCartridgeCard(c)));
+  filtered.forEach((c, idx) => {
+    const card = buildCartridgeCard(c);
+    card.style.animationDelay = Math.min(idx * 30, 300) + 'ms';
+    cartridgeGrid.appendChild(card);
+  });
   cartridgeEmpty.classList.toggle('visible', filtered.length === 0);
 }
 
@@ -2388,7 +2451,7 @@ function charTypeOut(text){
     i++;
     if(i > text.length){
       clearInterval(interval);
-      el.textContent = text;
+      el.innerHTML = highlightCode(text);
     }
   }, speed);
 }
