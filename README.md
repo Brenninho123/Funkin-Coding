@@ -29,6 +29,8 @@ The site is also an installable **PWA** (manifest + service worker, offline shel
 
 ```
 index.html              the whole front-end (markup, styles, all client logic)
+project.js               project identity/bootstrap — declares window.FunkinProject and loads source/Main.js
+source/Main.js           the site's system controller — boots, checks that other modules loaded, fires 'fc-main-ready'
 login.js                Google Sign-In (Google Identity Services)
 community.js             WebSocket client for the Community tab
 server.js                Express static server + WebSocket server for community chat
@@ -38,6 +40,8 @@ sw.js                    service worker (offline caching, cache-busted per versi
 icons/                   app icons (16/32/180/192/512px)
 community-messages.json  chat history, created automatically by server.js
 ```
+
+`project.js` loads first and injects `source/Main.js`, which is the closest thing this site has to an entry point/system class — similar in spirit to a Haxe project's `Main.hx`. It doesn't own the UI logic (that's still in `index.html`'s inline script); it boots, confirms the other modules came up, and dispatches a `fc-main-ready` event on `window` once everything's checked. Listen for that event if you add a module that needs to run after boot is confirmed.
 
 ## Getting started
 
