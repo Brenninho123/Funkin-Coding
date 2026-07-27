@@ -5,7 +5,8 @@ const fs = require('fs');
 const WebSocket = require('ws');
 
 const PORT = process.env.PORT || 3000;
-const MESSAGES_FILE = path.join(__dirname, 'community-messages.json');
+const RUNTIME_DIR = process.pkg ? path.dirname(process.execPath) : __dirname;
+const MESSAGES_FILE = path.join(RUNTIME_DIR, 'community-messages.json');
 const MAX_MESSAGES = 200;
 const MAX_MESSAGE_LENGTH = 500;
 const MAX_NAME_LENGTH = 40;
