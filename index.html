@@ -917,6 +917,9 @@ const schema = {
 };
 
 function generate(lang, category, v){
+  if(currentEngine === 'vslice'){
+    return generateVSlice(category, v);
+  }
   const isHaxe = lang === 'haxe';
   if(category === 'beatHit'){
     return isHaxe
@@ -1053,6 +1056,148 @@ function generate(lang, category, v){
   return '';
 }
 
+function vCharAccessor(name){
+  const key = String(name || '').trim().toLowerCase();
+  if(key === 'bf' || key === 'boyfriend') return 'PlayState.instance.currentStage.getBoyfriend()';
+  if(key === 'dad' || key === 'opponent') return 'PlayState.instance.currentStage.getDad()';
+  if(key === 'gf' || key === 'girlfriend') return 'PlayState.instance.currentStage.getGirlfriend()';
+  return `PlayState.instance.currentStage.getCharacter('${name}')`;
+}
+
+function vClassName(category){
+  const map = {
+    beatHit: 'CustomBeatHit', noteHit: 'CustomNoteHit', cameraZoom: 'CustomCameraZoom',
+    healthChange: 'CustomHealthChange', customEvent: 'CustomSongEvent', boilerplate: 'CustomModule',
+    ratingChange: 'CustomRatingText', keybind: 'CustomKeybind', discordPresence: 'CustomDiscordPresence',
+    characterReposition: 'CustomCharacterReposition', comboPopup: 'CustomComboPopup', shakeOnSick: 'CustomSickShake',
+    freezeFrame: 'CustomFreezeFrame', iconBop: 'CustomIconBop', noteSkinSwap: 'CustomNoteSkinSwap',
+    bgPropSpawn: 'CustomBgProp', lyricsDisplay: 'CustomLyricsDisplay', customSubstate: 'CustomSubstateTrigger',
+    scrollSpeedChange: 'CustomScrollSpeed', forcedMiss: 'CustomForcedMiss', failScreenMessage: 'CustomFailMessage',
+    player2Toggle: 'CustomPlayer2Toggle', charAnimTrigger: 'CustomCharAnim', scoreMultiplierDisplay: 'CustomScoreMultiplier'
+  };
+  return map[category] || 'CustomModule';
+}
+
+function vWrap(className, imports, overrideBody){
+  const importBlock = ['funkin.play.PlayState', 'funkin.modding.module.Module'].concat(imports)
+    .map(i => `import ${i};`).join('\n');
+  const indented = overrideBody.split('\n').map(l => l ? '\t' + l : l).join('\n');
+  return `${importBlock}\n\nclass ${className} extends Module\n{\n\tfunction new()\n\t{\n\t\tsuper('${className}', 0, {state: PlayState});\n\t}\n\n${indented}\n}`;
+}
+
+function generateVSlice(category, v){
+  const className = vClassName(category);
+  const dirMap = {Left:0, Down:1, Up:2, Right:3};
+
+  if(category === 'beatHit'){
+    const body = `override function onBeatHit(event:BeatHitScriptEvent)\n{\n    super.onBeatHit(event);\n    if (event.beat % ${v.beatEvery} == 0)\n    {\n        var char = ${vCharAccessor(v.characterName)};\n        char.playAnimation('idle', true);\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.BeatHitScriptEvent'], body);
+  }
+  if(category === 'noteHit'){
+    const body = `override function onNoteHit(event:HitNoteScriptEvent)\n{\n    super.onNoteHit(event);\n    if (event.note.noteType == '${v.noteType}')\n    {\n        PlayState.instance.songScore += ${v.pointsBonus};\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.HitNoteScriptEvent'], body);
+  }
+  if(category === 'cameraZoom'){
+    const body = `override function onBeatHit(event:BeatHitScriptEvent)\n{\n    super.onBeatHit(event);\n    if (event.beat % ${v.zoomDuration} == 0)\n    {\n        FlxG.camera.zoom = ${v.zoomAmount};\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.BeatHitScriptEvent', 'flixel.FlxG'], body);
+  }
+  if(category === 'healthChange'){
+    const triggerMap = {
+      'On Note Hit': {fn:'onNoteHit', evt:'HitNoteScriptEvent', imp:'funkin.modding.events.HitNoteScriptEvent'},
+      'On Note Miss': {fn:'onNoteMiss', evt:'NoteScriptEvent', imp:'funkin.modding.events.NoteScriptEvent'},
+      'On Beat': {fn:'onBeatHit', evt:'BeatHitScriptEvent', imp:'funkin.modding.events.BeatHitScriptEvent'}
+    };
+    const t = triggerMap[v.trigger] || triggerMap['On Note Miss'];
+    const body = `override function ${t.fn}(event:${t.evt})\n{\n    super.${t.fn}(event);\n    PlayState.instance.health += ${v.amount};\n}`;
+    return vWrap(className, [t.imp], body);
+  }
+  if(category === 'customEvent'){
+    const body = `override function onSongEvent(event:SongEventScriptEvent)\n{\n    super.onSongEvent(event);\n    if (event.eventData.eventKind == '${v.eventName}')\n    {\n        FlxG.camera.flash(FlxColor.WHITE, 0.5);\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.SongEventScriptEvent', 'flixel.FlxG', 'flixel.util.FlxColor'], body);
+  }
+  if(category === 'boilerplate'){
+    const body = `override function onCreate(event:ScriptEvent)\n{\n    super.onCreate(event);\n}\n\noverride function onCreatePost(event:ScriptEvent)\n{\n    super.onCreatePost(event);\n}\n\noverride function onUpdate(event:UpdateScriptEvent)\n{\n    super.onUpdate(event);\n}\n\noverride function onDestroy(event:ScriptEvent)\n{\n    super.onDestroy(event);\n}`;
+    return vWrap(className, ['funkin.modding.events.ScriptEvent', 'funkin.modding.events.UpdateScriptEvent'], body);
+  }
+  if(category === 'ratingChange'){
+    const body = `override function onNoteHit(event:HitNoteScriptEvent)\n{\n    super.onNoteHit(event);\n    if (event.judgement == 'sick')\n    {\n        PlayState.instance.judgementText.text = '${v.ratingName}';\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.HitNoteScriptEvent'], body);
+  }
+  if(category === 'keybind'){
+    const keyUp = String(v.keyName || '').toUpperCase();
+    const body = `override function onUpdate(event:UpdateScriptEvent)\n{\n    super.onUpdate(event);\n    if (FlxG.keys.justPressed.${keyUp})\n    {\n        PlayState.instance.resetSong();\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.UpdateScriptEvent', 'flixel.FlxG'], body);
+  }
+  if(category === 'discordPresence'){
+    const body = `override function onCreate(event:ScriptEvent)\n{\n    super.onCreate(event);\n    DiscordClient.changePresence('${v.details}', '${v.state}');\n}`;
+    return vWrap(className, ['funkin.modding.events.ScriptEvent', 'funkin.util.macro.DiscordClient'], body);
+  }
+  if(category === 'characterReposition'){
+    const body = `override function onCreatePost(event:ScriptEvent)\n{\n    super.onCreatePost(event);\n    var char = ${vCharAccessor(v.characterName)};\n    char.x += ${v.xOffset};\n    char.y += ${v.yOffset};\n}`;
+    return vWrap(className, ['funkin.modding.events.ScriptEvent'], body);
+  }
+  if(category === 'comboPopup'){
+    const body = `override function onNoteHit(event:HitNoteScriptEvent)\n{\n    super.onNoteHit(event);\n    if (PlayState.instance.combo == ${v.comboThreshold})\n    {\n        var popup = new FlxText(0, 100, FlxG.width, '${v.message}');\n        popup.setFormat(null, 32, FlxColor.WHITE, CENTER);\n        popup.screenCenter(X);\n        PlayState.instance.add(popup);\n        FlxTween.tween(popup, {alpha: 0}, 1, {startDelay: 0.5, onComplete: (_) -> popup.destroy()});\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.HitNoteScriptEvent', 'flixel.FlxG', 'flixel.text.FlxText', 'flixel.util.FlxColor', 'flixel.tweens.FlxTween'], body);
+  }
+  if(category === 'shakeOnSick'){
+    const body = `override function onNoteHit(event:HitNoteScriptEvent)\n{\n    super.onNoteHit(event);\n    if (event.judgement == 'sick')\n    {\n        FlxG.camera.shake(${v.shakeIntensity}, ${v.shakeDuration});\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.HitNoteScriptEvent', 'flixel.FlxG'], body);
+  }
+  if(category === 'freezeFrame'){
+    const body = `override function onNoteMiss(event:NoteScriptEvent)\n{\n    super.onNoteMiss(event);\n    FlxG.timeScale = 0.05;\n    new FlxTimer().start(${v.freezeDuration}, (t) -> FlxG.timeScale = 1);\n}`;
+    return vWrap(className, ['funkin.modding.events.NoteScriptEvent', 'flixel.FlxG', 'flixel.util.FlxTimer'], body);
+  }
+  if(category === 'iconBop'){
+    const body = `override function onBeatHit(event:BeatHitScriptEvent)\n{\n    super.onBeatHit(event);\n    PlayState.instance.${v.iconChar}.bop();\n}`;
+    return vWrap(className, ['funkin.modding.events.BeatHitScriptEvent'], body);
+  }
+  if(category === 'noteSkinSwap'){
+    const body = `override function onBeatHit(event:BeatHitScriptEvent)\n{\n    super.onBeatHit(event);\n    if (event.beat == ${v.triggerBeat})\n    {\n        PlayState.instance.currentChart.noteStyle = '${v.skinName}';\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.BeatHitScriptEvent'], body);
+  }
+  if(category === 'bgPropSpawn'){
+    const body = `override function onCreatePost(event:ScriptEvent)\n{\n    super.onCreatePost(event);\n    var prop = new FlxSprite(${v.xPos}, ${v.yPos});\n    prop.loadGraphic(Paths.image('${v.propImage}'));\n    PlayState.instance.add(prop);\n}`;
+    return vWrap(className, ['funkin.modding.events.ScriptEvent', 'flixel.FlxSprite', 'funkin.util.assets.Paths'], body);
+  }
+  if(category === 'lyricsDisplay'){
+    const body = `override function onStepHit(event:StepHitScriptEvent)\n{\n    super.onStepHit(event);\n    if (event.step == ${v.triggerStep})\n    {\n        PlayState.instance.lyricsText.text = '${v.lyricText}';\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.StepHitScriptEvent'], body);
+  }
+  if(category === 'customSubstate'){
+    const keyUp = String(v.keyName || '').toUpperCase();
+    const body = `override function onUpdate(event:UpdateScriptEvent)\n{\n    super.onUpdate(event);\n    if (FlxG.keys.justPressed.${keyUp})\n    {\n        PlayState.instance.openSubState(new ${v.substateName}());\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.UpdateScriptEvent', 'flixel.FlxG'], body);
+  }
+  if(category === 'scrollSpeedChange'){
+    const body = `override function onBeatHit(event:BeatHitScriptEvent)\n{\n    super.onBeatHit(event);\n    if (event.beat == ${v.triggerBeat})\n    {\n        PlayState.instance.currentChart.scrollSpeed = ${v.newSpeed};\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.BeatHitScriptEvent'], body);
+  }
+  if(category === 'forcedMiss'){
+    const dirIndex = dirMap[v.noteDirection] ?? 1;
+    const body = `override function onStepHit(event:StepHitScriptEvent)\n{\n    super.onStepHit(event);\n    if (event.step == ${v.triggerStep})\n    {\n        PlayState.instance.vocals.applyNoteMiss(${dirIndex});\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.StepHitScriptEvent'], body);
+  }
+  if(category === 'failScreenMessage'){
+    const body = `override function onDestroy(event:ScriptEvent)\n{\n    super.onDestroy(event);\n    if (PlayState.instance.health <= 0)\n    {\n        PlayState.instance.gameOverMessage = '${v.message}';\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.ScriptEvent'], body);
+  }
+  if(category === 'player2Toggle'){
+    const boolHx = v.enabled === 'Yes' ? 'true' : 'false';
+    const body = `override function onCreate(event:ScriptEvent)\n{\n    super.onCreate(event);\n    PlayState.instance.isPlayer2Enabled = ${boolHx};\n}`;
+    return vWrap(className, ['funkin.modding.events.ScriptEvent'], body);
+  }
+  if(category === 'charAnimTrigger'){
+    const body = `override function onBeatHit(event:BeatHitScriptEvent)\n{\n    super.onBeatHit(event);\n    if (event.beat == ${v.triggerBeat})\n    {\n        var char = ${vCharAccessor(v.characterName)};\n        char.playAnimation('${v.animName}', true);\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.BeatHitScriptEvent'], body);
+  }
+  if(category === 'scoreMultiplierDisplay'){
+    const body = `override function onNoteHit(event:HitNoteScriptEvent)\n{\n    super.onNoteHit(event);\n    if (PlayState.instance.combo >= ${v.triggerCombo})\n    {\n        PlayState.instance.multiplierText.text = '${v.labelText}';\n        PlayState.instance.multiplierText.visible = true;\n    }\n}`;
+    return vWrap(className, ['funkin.modding.events.HitNoteScriptEvent'], body);
+  }
+  return '';
+}
+
 const cartridges = [
   {lang:'haxe', title:'Flash Screen on Event', tag:'HAXE', desc:'White flash triggered by a chart event, fades out over one beat.',
    code:`function onEvent(eventName:String, value1:String, value2:String)\n{\n    if (eventName == 'FlashScreen')\n    {\n        var flash:FlxSprite = new FlxSprite(0, 0).makeGraphic(FlxG.width, FlxG.height, FlxColor.WHITE);\n        flash.scrollFactor.set();\n        flash.cameras = [camHUD];\n        addLuaSprite('flash', flash);\n        FlxTween.tween(flash, {alpha: 0}, 0.6, {onComplete: function(_) removeLuaSprite('flash', true)});\n    }\n}`},
@@ -1079,7 +1224,13 @@ const cartridges = [
   {lang:'lua', title:'BPM Strobe Background', tag:'LUA', desc:'Flashes a full-screen strobe on a fixed beat interval, synced to the song.',
    code:`local strobeEvery = 8\nlocal strobeColor = 'FFFFFF'\nlocal strobeFade = 0.2\n\nfunction onCreatePost()\n    makeLuaSprite('strobeFlash', nil, 0, 0)\n    makeGraphic('strobeFlash', FlxG.width, FlxG.height, strobeColor)\n    setProperty('strobeFlash.alpha', 0)\n    addLuaSprite('strobeFlash', false)\n    setObjectCamera('strobeFlash', 'camHUD')\nend\n\nfunction onBeatHit()\n    if curBeat % strobeEvery == 0 then\n        setProperty('strobeFlash.alpha', 0.4)\n        doTweenAlpha('strobeFade', 'strobeFlash', 0, strobeFade, 'quadOut')\n    end\nend`},
   {lang:'lua', title:'Judgement Zoom Kick', tag:'LUA', desc:'Gives the game camera a tiny permanent zoom kick on Sick and Good hits.',
-   code:`local sickZoom = 0.015\nlocal goodZoom = 0.008\n\nfunction onUpdateScore(miss)\n    if miss then\n        return\n    end\n    if ratingName == 'sick' then\n        setProperty('camGame.zoom', getProperty('camGame.zoom') + sickZoom)\n    elseif ratingName == 'good' then\n        setProperty('camGame.zoom', getProperty('camGame.zoom') + goodZoom)\n    end\nend`}
+   code:`local sickZoom = 0.015\nlocal goodZoom = 0.008\n\nfunction onUpdateScore(miss)\n    if miss then\n        return\n    end\n    if ratingName == 'sick' then\n        setProperty('camGame.zoom', getProperty('camGame.zoom') + sickZoom)\n    elseif ratingName == 'good' then\n        setProperty('camGame.zoom', getProperty('camGame.zoom') + goodZoom)\n    end\nend`},
+  {lang:'haxe', engine:'vslice', title:'Direction Camera Nudge', tag:'V-SLICE', desc:'Full Module class that nudges the camera target offset per arrow direction and eases it back.',
+   code:`import funkin.play.PlayState;\nimport funkin.modding.module.Module;\nimport funkin.modding.events.HitNoteScriptEvent;\nimport flixel.FlxG;\nimport flixel.tweens.FlxTween;\nimport flixel.tweens.FlxEase;\n\nclass DirectionCameraNudge extends Module\n{\n\tvar nudgeDistance:Float = 40;\n\n\tfunction new()\n\t{\n\t\tsuper('DirectionCameraNudge', 0, {state: PlayState});\n\t}\n\n\toverride function onNoteHit(event:HitNoteScriptEvent)\n\t{\n\t\tsuper.onNoteHit(event);\n\n\t\tFlxTween.cancelTweensOf(FlxG.camera.targetOffset);\n\n\t\tswitch (event.note.direction)\n\t\t{\n\t\t\tcase 0: FlxG.camera.targetOffset.x = -nudgeDistance;\n\t\t\tcase 1: FlxG.camera.targetOffset.y = nudgeDistance;\n\t\t\tcase 2: FlxG.camera.targetOffset.y = -nudgeDistance;\n\t\t\tcase 3: FlxG.camera.targetOffset.x = nudgeDistance;\n\t\t}\n\n\t\tFlxTween.tween(FlxG.camera.targetOffset, {x: 0, y: 0}, 0.35, {ease: FlxEase.quadOut});\n\t}\n}`},
+  {lang:'haxe', engine:'vslice', title:'Combo-Synced Zoom Pulse', tag:'V-SLICE', desc:'Camera zoom grows slightly with your combo streak on every note hit.',
+   code:`import funkin.play.PlayState;\nimport funkin.modding.module.Module;\nimport funkin.modding.events.ScriptEvent;\nimport funkin.modding.events.HitNoteScriptEvent;\nimport flixel.FlxG;\n\nclass ComboZoomPulse extends Module\n{\n\tvar baseZoom:Float = 1;\n\tvar pulseAmount:Float = 0.015;\n\n\tfunction new()\n\t{\n\t\tsuper('ComboZoomPulse', 0, {state: PlayState});\n\t}\n\n\toverride function onCreatePost(event:ScriptEvent)\n\t{\n\t\tsuper.onCreatePost(event);\n\t\tbaseZoom = FlxG.camera.zoom;\n\t}\n\n\toverride function onNoteHit(event:HitNoteScriptEvent)\n\t{\n\t\tsuper.onNoteHit(event);\n\n\t\tvar comboBonus:Float = Math.min(PlayState.instance.combo * 0.001, 0.05);\n\t\tFlxG.camera.zoom = baseZoom + pulseAmount + comboBonus;\n\t}\n}`},
+  {lang:'haxe', engine:'vslice', title:'Song Event Camera Snap', tag:'V-SLICE', desc:'Snaps the camera follow point back to center when a custom chart event fires.',
+   code:`import funkin.play.PlayState;\nimport funkin.modding.module.Module;\nimport funkin.modding.events.SongEventScriptEvent;\nimport flixel.FlxG;\n\nclass SongEventCameraSnap extends Module\n{\n\tfunction new()\n\t{\n\t\tsuper('SongEventCameraSnap', 0, {state: PlayState});\n\t}\n\n\toverride function onSongEvent(event:SongEventScriptEvent)\n\t{\n\t\tsuper.onSongEvent(event);\n\n\t\tif (event.eventData.eventKind == 'CamSnap')\n\t\t{\n\t\t\tPlayState.instance.cameraFollowPoint.setPosition(\n\t\t\t\tFlxG.camera.scroll.x + FlxG.camera.width * 0.5,\n\t\t\t\tFlxG.camera.scroll.y + FlxG.camera.height * 0.5\n\t\t\t);\n\t\t}\n\t}\n}`}
 ];
 
 const tutorials = [
@@ -1260,6 +1411,7 @@ cartridges.forEach(c => {
     <div class="cart-desc">${c.desc}</div>
   `;
   card.addEventListener('click', () => {
+    setEngine(c.engine || 'psych');
     setLang(c.lang);
     document.querySelector('.tab-btn[data-tab="generator"]').click();
     categoryLabel.textContent = c.title.toLowerCase().replace(/\s+/g, '-');
@@ -1312,13 +1464,18 @@ const aiLangLabel = document.getElementById('aiLangLabel');
 const aiLangHint = document.getElementById('aiLangHint');
 
 function syncAiLangDisplay(){
-  aiLangLabel.textContent = currentLang;
-  aiLangHint.textContent = currentLang === 'haxe' ? 'HScript' : 'Lua';
+  aiLangLabel.textContent = currentEngine === 'vslice' ? 'haxe (module)' : currentLang;
+  aiLangHint.textContent = currentEngine === 'vslice' ? 'V-Slice Module' : (currentLang === 'haxe' ? 'HScript' : 'Lua');
 }
 
 const originalSetLang = setLang;
 setLang = function(lang){
   originalSetLang(lang);
+  syncAiLangDisplay();
+};
+const originalSetEngine = setEngine;
+setEngine = function(engine){
+  originalSetEngine(engine);
   syncAiLangDisplay();
 };
 syncAiLangDisplay();
@@ -1335,7 +1492,9 @@ async function generateWithAI(){
   aiStatus.className = 'ai-status';
 
   const langName = currentLang === 'haxe' ? 'HScript (Psych Engine, Haxe-like syntax)' : 'Lua (Psych Engine Lua API)';
-  const systemPrompt = `You are an expert Friday Night Funkin' engine modder writing production-ready ${langName} code. You can write anything the person asks for: a single callback, a full multi-function script with config variables at the top, a custom substate class, HUD elements, menus, tween-driven effects, or complete systems that combine several engine hooks together. Use the standard Psych Engine callback functions (onCreate, onCreatePost, onUpdate, onBeatHit, onStepHit, onNoteHit/goodNoteHit, onNoteMiss, onEvent, onUpdateScore, onPause, onTimerCompleted, etc), tween/timer helpers (doTweenX, doTweenY, doTweenAlpha, runTimer), and property helpers (setProperty, getProperty, setPropertyFromGroup) where relevant. When something needs tunable values, declare them as clearly named variables at the top of the script rather than hardcoding numbers inline. Match the real syntax of the target language exactly. Output ONLY the raw code — no markdown fences, no explanation before or after, no comments inside the code. If the request is ambiguous, make the most reasonable engine-accurate choice and keep going rather than asking for clarification.`;
+  const systemPrompt = currentEngine === 'vslice'
+    ? `You are an expert Friday Night Funkin' V-Slice engine modder writing production-ready Haxe code. Every script is a class that extends funkin.modding.module.Module, with a constructor calling super('ClassName', priority, {state: PlayState}) and one or more overridden event methods such as onCreate(event:ScriptEvent), onCreatePost(event:ScriptEvent), onUpdate(event:UpdateScriptEvent), onBeatHit(event:BeatHitScriptEvent), onStepHit(event:StepHitScriptEvent), onNoteHit(event:HitNoteScriptEvent), onNoteMiss(event:NoteScriptEvent), onSongEvent(event:SongEventScriptEvent), onDestroy(event:ScriptEvent), always calling super.methodName(event) first. Access game state through PlayState.instance (health, combo, currentStage, currentChart, camera via FlxG.camera). Include the exact import lines needed at the top (funkin.play.PlayState, funkin.modding.module.Module, funkin.modding.events.*, flixel.* as needed). When something needs tunable values, declare them as typed class-level var fields rather than hardcoding numbers inline. You can write anything asked: a single event override, a full module with several overrides working together, camera systems, HUD elements, or full gameplay modifiers. Output ONLY the raw Haxe code — no markdown fences, no explanation before or after, no comments inside the code. If the request is ambiguous, make the most reasonable engine-accurate choice and keep going rather than asking for clarification.`
+    : `You are an expert Friday Night Funkin' engine modder writing production-ready ${langName} code. You can write anything the person asks for: a single callback, a full multi-function script with config variables at the top, a custom substate class, HUD elements, menus, tween-driven effects, or complete systems that combine several engine hooks together. Use the standard Psych Engine callback functions (onCreate, onCreatePost, onUpdate, onBeatHit, onStepHit, onNoteHit/goodNoteHit, onNoteMiss, onEvent, onUpdateScore, onPause, onTimerCompleted, etc), tween/timer helpers (doTweenX, doTweenY, doTweenAlpha, runTimer), and property helpers (setProperty, getProperty, setPropertyFromGroup) where relevant. When something needs tunable values, declare them as clearly named variables at the top of the script rather than hardcoding numbers inline. Match the real syntax of the target language exactly. Output ONLY the raw code — no markdown fences, no explanation before or after, no comments inside the code. If the request is ambiguous, make the most reasonable engine-accurate choice and keep going rather than asking for clarification.`;
 
   try{
     const response = await fetch('https://api.anthropic.com/v1/messages', {
