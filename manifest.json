@@ -2,7 +2,7 @@
   "name": "Funkin' Coding",
   "short_name": "Funkin' Coding",
   "description": "HScript / Lua snippet generator, cartridges and tutorials for FNF engines",
-  "start_url": "./funkin-coding.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b0b12",
