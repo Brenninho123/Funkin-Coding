@@ -39,9 +39,35 @@ manifest.json            PWA manifest
 sw.js                    service worker (offline caching, cache-busted per version)
 icons/                   app icons (16/32/180/192/512px)
 community-messages.json  chat history, created automatically by server.js
+.github/workflows/windows.yml   CI: installs deps, syntax-checks every script, boots the server on a Windows runner and hits /health + static routes
 ```
 
 `project.js` loads first and injects `source/Main.js`, which is the closest thing this site has to an entry point/system class — similar in spirit to a Haxe project's `Main.hx`. It doesn't own the UI logic (that's still in `index.html`'s inline script); it boots, confirms the other modules came up, and dispatches a `fc-main-ready` event on `window` once everything's checked. Listen for that event if you add a module that needs to run after boot is confirmed.
+
+## Continuous integration
+
+`.github/workflows/windows.yml` runs on every push/PR to `main` (and can be triggered manually). On a `windows-latest` runner it:
+
+1. Installs dependencies with `npm install`.
+2. Runs `node --check` against every server/client script to catch syntax errors early.
+3. Validates that `manifest.json` and `package.json` are well-formed.
+4. Boots `server.js` and confirms `/health` returns 200.
+5. Boots it again and confirms the static routes (`/`, `/index.html`, `/project.js`, `/source/Main.js`, `/manifest.json`) are actually served.
+
+There's no Linux/macOS workflow yet — add one alongside this if you want the same checks on other runners.
+
+## Building a Windows .exe
+
+```
+npm install
+npm run build:exe
+```
+
+This uses [@yao-pkg/pkg](https://github.com/yao-pkg/pkg) (the maintained fork of the archived `vercel/pkg`) to bundle `server.js`, its dependencies, and every static site asset (`index.html`, `project.js`, `source/`, `login.js`, `community.js`, `manifest.json`, `sw.js`, `icons/`) into a single `dist/funkin-coding.exe`. Running that `.exe` on a Windows machine starts the exact same server — no Node.js install required on the target machine.
+
+`community-messages.json` is written next to the `.exe` itself (not inside the bundled snapshot), so chat history persists across restarts of the packaged executable too.
+
+The `windows.yml` workflow builds this on every push/PR and uploads it as a downloadable build artifact named `funkin-coding-windows-exe`.
 
 ## Getting started
 
