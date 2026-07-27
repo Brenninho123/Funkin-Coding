@@ -149,7 +149,11 @@ body.lang-lua .switch-thumb{left:27px;}
   gap:6px;
   margin-bottom:28px;
   border-bottom:1px solid var(--border);
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
 }
+.tabs::-webkit-scrollbar{display:none;}
 .tab-btn{
   font-family:'JetBrains Mono',monospace;
   font-size:12px;
@@ -161,6 +165,8 @@ body.lang-lua .switch-thumb{left:27px;}
   cursor:pointer;
   border-bottom:2px solid transparent;
   transition:all .2s ease;
+  white-space:nowrap;
+  flex-shrink:0;
 }
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
 .tab-panel{display:none;}
@@ -569,6 +575,50 @@ footer{
   color:var(--dimmer);
   letter-spacing:.5px;
 }
+
+.anim-scroll{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin-top:10px;
+}
+.anim-scroll .anim-header, .anim-scroll .anim-list{min-width:600px;}
+body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .anim-list{min-width:540px;}
+
+@media(max-width:1180px){
+  .wrap{padding:28px 18px 60px;}
+}
+
+@media(max-width:760px){
+  .site-header{flex-direction:column;align-items:flex-start;gap:16px;}
+  .lang-switch{width:100%;justify-content:space-between;}
+  #installBtn{width:100%;justify-content:center;}
+  h1{font-size:19px;}
+  .tagline{font-size:11px;}
+  .engine-bar{width:100%;}
+  .engine-switch{flex:1;}
+  .engine-switch button{flex:1;text-align:center;}
+  .engine-note{width:100%;order:3;}
+  .terminal-header{flex-direction:column;align-items:stretch;}
+  .term-actions{width:100%;}
+  .term-actions button{flex:1;}
+  .cartridge-grid{grid-template-columns:1fr;}
+}
+
+@media(max-width:420px){
+  .logo{width:44px;height:44px;font-size:15px;}
+  h1{font-size:16px;letter-spacing:.5px;}
+  .cmd-line{font-size:11px;}
+  .tab-btn{padding:10px 14px;font-size:11px;}
+  .field-label{font-size:10px;}
+}
+
+@media(min-width:1400px){
+  .wrap{max-width:1320px;}
+}
+
+@media(hover:hover) and (pointer:fine){
+  .cartridge:hover{box-shadow:0 4px 18px rgba(0,0,0,.35);}
+}
 </style>
 </head>
 <body class="lang-haxe engine-psych">
@@ -715,18 +765,20 @@ footer{
       </div>
 
       <span class="field-label">Animations</span>
-      <div class="anim-header">
-        <span>State</span>
-        <span>Name / Prefix</span>
-        <span class="psych-only">FPS</span>
-        <span>Loop</span>
-        <span>Off X</span>
-        <span>Off Y</span>
-        <span class="psych-only">Indices</span>
-        <span class="vslice-only">Asset Path</span>
-        <span></span>
+      <div class="anim-scroll">
+        <div class="anim-header">
+          <span>State</span>
+          <span>Name / Prefix</span>
+          <span class="psych-only">FPS</span>
+          <span>Loop</span>
+          <span>Off X</span>
+          <span>Off Y</span>
+          <span class="psych-only">Indices</span>
+          <span class="vslice-only">Asset Path</span>
+          <span></span>
+        </div>
+        <div class="anim-list" id="animList"></div>
       </div>
-      <div class="anim-list" id="animList"></div>
       <button id="addAnimBtn">+ ADD ANIMATION</button>
       <button id="generateCharBtn">GENERATE CHARACTER JSON</button>
     </div>
@@ -1550,7 +1602,24 @@ document.getElementById('aiDownloadBtn').addEventListener('click', () => {
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(() => {});
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const installing = reg.installing;
+        if(!installing) return;
+        installing.addEventListener('statechange', () => {
+          if(installing.state === 'installed' && navigator.serviceWorker.controller){
+            installing.postMessage('skipWaiting');
+          }
+        });
+      });
+    }).catch(() => {});
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(refreshing) return;
+    refreshing = true;
+    window.location.reload();
   });
 }
 
