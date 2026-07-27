@@ -194,6 +194,96 @@ body.lang-lua .switch-thumb{left:27px;}
 }
 .auth-signout:hover{border-color:#ff6b6b;color:#ff6b6b;}
 
+.icon-btn{
+  width:38px;height:38px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--panel);
+  border:1px solid var(--border);
+  color:var(--dim);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:16px;
+  transition:all .3s ease;
+  flex-shrink:0;
+}
+.icon-btn:hover{color:var(--accent);border-color:var(--accent);transform:rotate(45deg);}
+
+.options-overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(5,5,10,.7);
+  backdrop-filter:blur(2px);
+  z-index:100;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+.options-overlay.open{display:flex;}
+.options-modal{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:10px;
+  width:100%;
+  max-width:360px;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 20px 50px rgba(0,0,0,.5);
+  animation:tabFade .2s ease;
+}
+.options-modal::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+  background:linear-gradient(90deg, var(--haxe), var(--lua));
+}
+.options-modal-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 18px;
+  border-bottom:1px solid var(--border);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:1.5px;
+  color:var(--dim);
+}
+.options-close{
+  background:none;
+  border:none;
+  color:var(--dim);
+  font-size:20px;
+  cursor:pointer;
+  line-height:1;
+  padding:0 4px;
+  transition:color .2s ease;
+}
+.options-close:hover{color:var(--accent);}
+.options-modal-body{padding:18px;}
+.lang-option-list{
+  display:flex;
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  margin-top:8px;
+}
+.lang-option-btn{
+  flex:1;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  font-weight:700;
+  background:var(--panel2);
+  border:none;
+  color:var(--dim);
+  padding:11px;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.lang-option-btn + .lang-option-btn{border-left:1px solid var(--border);}
+.lang-option-btn.active{background:var(--accent);color:#0b0b12;}
+
 .tabs{
   display:flex;
   gap:6px;
@@ -861,7 +951,7 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
     <div class="logo">FC</div>
     <div>
       <h1>FUNKIN' CODING</h1>
-      <div class="tagline">HScript / Lua snippet generator + tutorials for FNF engines</div>
+      <div class="tagline" data-i18n="header.tagline">HScript / Lua snippet generator + tutorials for FNF engines</div>
     </div>
   </div>
   <div class="lang-switch" id="langSwitch">
@@ -869,9 +959,26 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
     <div class="switch-track" id="switchTrack"><div class="switch-thumb"></div></div>
     <button data-lang="lua" id="btnLua">LUA</button>
   </div>
-  <button id="installBtn">⤓ INSTALL APP</button>
+  <button id="installBtn" data-i18n="header.install">⤓ INSTALL APP</button>
   <div id="authContainer" class="auth-container"></div>
+  <button id="optionsBtn" class="icon-btn" type="button" aria-label="Options" title="Options">⚙</button>
 </header>
+
+<div class="options-overlay" id="optionsOverlay">
+  <div class="options-modal">
+    <div class="options-modal-head">
+      <span data-i18n="options.title">OPTIONS</span>
+      <button id="optionsCloseBtn" class="options-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="options-modal-body">
+      <span class="field-label" style="margin-top:0" data-i18n="options.language">Language</span>
+      <div class="lang-option-list" id="langOptionList">
+        <button class="lang-option-btn" data-lang-option="en" type="button">English</button>
+        <button class="lang-option-btn" data-lang-option="pt" type="button">Português</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="engine-bar">
   <span class="engine-label">ENGINE</span>
@@ -883,29 +990,29 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
 </div>
 
 <div class="tabs">
-  <button class="tab-btn active" data-tab="generator">GENERATOR</button>
-  <button class="tab-btn" data-tab="library">CARTRIDGES</button>
-  <button class="tab-btn" data-tab="tutorials">TUTORIALS</button>
-  <button class="tab-btn" data-tab="ai">AI ASSISTANT</button>
-  <button class="tab-btn" data-tab="characters">CHARACTERS</button>
-  <button class="tab-btn" data-tab="community">COMMUNITY</button>
+  <button class="tab-btn active" data-tab="generator" data-i18n="tabs.generator">GENERATOR</button>
+  <button class="tab-btn" data-tab="library" data-i18n="tabs.library">CARTRIDGES</button>
+  <button class="tab-btn" data-tab="tutorials" data-i18n="tabs.tutorials">TUTORIALS</button>
+  <button class="tab-btn" data-tab="ai" data-i18n="tabs.ai">AI ASSISTANT</button>
+  <button class="tab-btn" data-tab="characters" data-i18n="tabs.characters">CHARACTERS</button>
+  <button class="tab-btn" data-tab="community" data-i18n="tabs.community">COMMUNITY</button>
 </div>
 
 <div class="tab-panel active" id="tab-generator">
   <section class="workspace">
     <div class="panel form-panel">
-      <span class="field-label">Snippet Category</span>
+      <span class="field-label" data-i18n="gen.category">Snippet Category</span>
       <select id="categorySelect"></select>
       <div id="fieldsContainer"></div>
-      <button id="generateBtn">GENERATE SNIPPET</button>
+      <button id="generateBtn" data-i18n="gen.generate">GENERATE SNIPPET</button>
     </div>
 
     <div class="panel output-panel">
       <div class="terminal-header">
         <span class="cmd-line">$ fc --lang=<b id="langLabel">haxe</b> --emit=<b id="categoryLabel">beatHit</b></span>
         <div class="term-actions">
-          <button id="copyBtn">COPY</button>
-          <button id="downloadBtn">DOWNLOAD</button>
+          <button id="copyBtn" data-i18n="actions.copy">COPY</button>
+          <button id="downloadBtn" data-i18n="actions.download">DOWNLOAD</button>
         </div>
       </div>
       <pre class="code-output"><code id="codeOutput"></code></pre>
@@ -915,14 +1022,14 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
 
 <div class="tab-panel" id="tab-library">
   <section class="library">
-    <h2>READY-MADE CARTRIDGES</h2>
+    <h2 data-i18n="library.heading">READY-MADE CARTRIDGES</h2>
     <div class="cartridge-grid" id="cartridgeGrid"></div>
   </section>
 </div>
 
 <div class="tab-panel" id="tab-tutorials">
   <section class="tutorials">
-    <h2>TUTORIALS</h2>
+    <h2 data-i18n="tutorials.heading">TUTORIALS</h2>
     <div class="tut-list" id="tutList"></div>
   </section>
 </div>
@@ -930,10 +1037,10 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
 <div class="tab-panel" id="tab-ai">
   <section class="workspace">
     <div class="panel ai-panel">
-      <div class="ai-intro">Ask for anything — a snippet, a full multi-function script, a custom substate, an explanation of an API, help debugging something you paste in, or just a general question. Code comes back as ready <b id="aiLangHint">HScript</b> for your engine.</div>
-      <span class="field-label" style="margin-top:0">Ask anything</span>
-      <textarea id="aiPrompt" placeholder="e.g. a full script that changes the camera zoom, note skin, and background character animation together every 16 beats — or just ask a question about the engine"></textarea>
-      <button id="aiGenerateBtn">ASK AI</button>
+      <div class="ai-intro" id="aiIntroText">Ask for anything — a snippet, a full multi-function script, a custom substate, an explanation of an API, help debugging something you paste in, or just a general question. Code comes back as ready <b id="aiLangHint">HScript</b> for your engine.</div>
+      <span class="field-label" style="margin-top:0" data-i18n="ai.askLabel">Ask anything</span>
+      <textarea id="aiPrompt" data-i18n-placeholder="ai.placeholder" placeholder="e.g. a full script that changes the camera zoom, note skin, and background character animation together every 16 beats — or just ask a question about the engine"></textarea>
+      <button id="aiGenerateBtn" data-i18n="ai.ask">ASK AI</button>
       <div class="ai-status" id="aiStatus"></div>
     </div>
 
@@ -941,8 +1048,8 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
       <div class="terminal-header">
         <span class="cmd-line">$ fc --ai --lang=<b id="aiLangLabel">haxe</b></span>
         <div class="term-actions">
-          <button id="aiCopyBtn">COPY</button>
-          <button id="aiDownloadBtn">DOWNLOAD</button>
+          <button id="aiCopyBtn" data-i18n="actions.copy">COPY</button>
+          <button id="aiDownloadBtn" data-i18n="actions.download">DOWNLOAD</button>
         </div>
       </div>
       <pre class="code-output"><code id="aiCodeOutput">// the answer will appear here</code></pre>
@@ -954,35 +1061,35 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
   <section class="workspace" style="grid-template-columns:1fr;">
     <div class="panel form-panel">
       <div class="char-form">
-        <div class="field-full"><span class="field-label" style="margin-top:0">Character name</span><input type="text" id="charName" value="Boyfriend"></div>
+        <div class="field-full"><span class="field-label" style="margin-top:0" data-i18n="char.name">Character name</span><input type="text" id="charName" value="Boyfriend"></div>
 
-        <div class="psych-only"><span class="field-label">Image path</span><input type="text" id="charImage" value="characters/BOYFRIEND"></div>
-        <div class="vslice-only"><span class="field-label">Asset path</span><input type="text" id="charAssetPath" value="shared:characters/bf"></div>
+        <div class="psych-only"><span class="field-label" data-i18n="char.imagePath">Image path</span><input type="text" id="charImage" value="characters/BOYFRIEND"></div>
+        <div class="vslice-only"><span class="field-label" data-i18n="char.assetPath">Asset path</span><input type="text" id="charAssetPath" value="shared:characters/bf"></div>
 
-        <div class="psych-only"><span class="field-label">Health icon</span><input type="text" id="charHealthicon" value="bf"></div>
-        <div class="vslice-only"><span class="field-label">Render type</span><input type="text" id="charRenderType" value="multianimateatlas"></div>
+        <div class="psych-only"><span class="field-label" data-i18n="char.healthicon">Health icon</span><input type="text" id="charHealthicon" value="bf"></div>
+        <div class="vslice-only"><span class="field-label" data-i18n="char.renderType">Render type</span><input type="text" id="charRenderType" value="multianimateatlas"></div>
 
-        <div><span class="field-label">Flip X</span><select id="charFlipX"><option>Yes</option><option>No</option></select></div>
-        <div class="psych-only"><span class="field-label">Scale</span><input type="text" id="charScale" value="1"></div>
-        <div class="vslice-only"><span class="field-label">Version</span><input type="text" id="charVersion" value="1.0.0"></div>
+        <div><span class="field-label" data-i18n="char.flipX">Flip X</span><select id="charFlipX"><option value="Yes" data-i18n="common.yes">Yes</option><option value="No" data-i18n="common.no">No</option></select></div>
+        <div class="psych-only"><span class="field-label" data-i18n="char.scale">Scale</span><input type="text" id="charScale" value="1"></div>
+        <div class="vslice-only"><span class="field-label" data-i18n="char.version">Version</span><input type="text" id="charVersion" value="1.0.0"></div>
 
-        <div><span class="field-label" id="posLabel">Position X / Y</span>
+        <div><span class="field-label" id="posLabel" data-i18n="char.positionPsych">Position X / Y</span>
           <div style="display:flex;gap:8px;">
             <input type="text" id="charPosX" value="0">
             <input type="text" id="charPosY" value="350">
           </div>
         </div>
-        <div><span class="field-label" id="camLabel">Camera Offset X / Y</span>
+        <div><span class="field-label" id="camLabel" data-i18n="char.cameraPsych">Camera Offset X / Y</span>
           <div style="display:flex;gap:8px;">
             <input type="text" id="charCamX" value="0">
             <input type="text" id="charCamY" value="0">
           </div>
         </div>
 
-        <div class="psych-only"><span class="field-label">Sing duration</span><input type="text" id="charSingDuration" value="4"></div>
-        <div class="psych-only"><span class="field-label">No antialiasing</span><select id="charNoAA"><option>No</option><option>Yes</option></select></div>
+        <div class="psych-only"><span class="field-label" data-i18n="char.singDuration">Sing duration</span><input type="text" id="charSingDuration" value="4"></div>
+        <div class="psych-only"><span class="field-label" data-i18n="char.noAntialiasing">No antialiasing</span><select id="charNoAA"><option value="No" data-i18n="common.no">No</option><option value="Yes" data-i18n="common.yes">Yes</option></select></div>
 
-        <div class="psych-only field-full"><span class="field-label">Healthbar color (R, G, B)</span>
+        <div class="psych-only field-full"><span class="field-label" data-i18n="char.healthbarColor">Healthbar color (R, G, B)</span>
           <div style="display:flex;gap:8px;">
             <input type="text" id="charColorR" value="49">
             <input type="text" id="charColorG" value="176">
@@ -990,39 +1097,39 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
           </div>
         </div>
 
-        <div class="vslice-only field-full"><span class="field-label">Death camera offset X / Y (optional)</span>
+        <div class="vslice-only field-full"><span class="field-label" data-i18n="char.deathOffset">Death camera offset X / Y (optional)</span>
           <div style="display:flex;gap:8px;">
-            <input type="text" id="charDeathX" placeholder="leave blank to omit">
-            <input type="text" id="charDeathY" placeholder="leave blank to omit">
+            <input type="text" id="charDeathX" data-i18n-placeholder="char.leaveBlank" placeholder="leave blank to omit">
+            <input type="text" id="charDeathY" data-i18n-placeholder="char.leaveBlank" placeholder="leave blank to omit">
           </div>
         </div>
       </div>
 
-      <span class="field-label">Animations</span>
+      <span class="field-label" data-i18n="char.animations">Animations</span>
       <div class="anim-scroll">
         <div class="anim-header">
-          <span>State</span>
-          <span>Name / Prefix</span>
-          <span class="psych-only">FPS</span>
-          <span>Loop</span>
-          <span>Off X</span>
-          <span>Off Y</span>
-          <span class="psych-only">Indices</span>
-          <span class="vslice-only">Asset Path</span>
+          <span data-i18n="char.animState">State</span>
+          <span data-i18n="char.animNamePrefix">Name / Prefix</span>
+          <span class="psych-only" data-i18n="char.animFps">FPS</span>
+          <span data-i18n="char.animLoop">Loop</span>
+          <span data-i18n="char.animOffX">Off X</span>
+          <span data-i18n="char.animOffY">Off Y</span>
+          <span class="psych-only" data-i18n="char.animIndices">Indices</span>
+          <span class="vslice-only" data-i18n="char.animAssetPath">Asset Path</span>
           <span></span>
         </div>
         <div class="anim-list" id="animList"></div>
       </div>
-      <button id="addAnimBtn">+ ADD ANIMATION</button>
-      <button id="generateCharBtn">GENERATE CHARACTER JSON</button>
+      <button id="addAnimBtn" data-i18n="char.addAnimation">+ ADD ANIMATION</button>
+      <button id="generateCharBtn" data-i18n="char.generate">GENERATE CHARACTER JSON</button>
     </div>
 
     <div class="panel output-panel">
       <div class="terminal-header">
         <span class="cmd-line">$ fc --character --engine=<b id="charEngineLabel">psych</b></span>
         <div class="term-actions">
-          <button id="charCopyBtn">COPY</button>
-          <button id="charDownloadBtn">DOWNLOAD</button>
+          <button id="charCopyBtn" data-i18n="actions.copy">COPY</button>
+          <button id="charDownloadBtn" data-i18n="actions.download">DOWNLOAD</button>
         </div>
       </div>
       <pre class="code-output"><code id="charCodeOutput"></code></pre>
@@ -1034,8 +1141,8 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
   <section class="community-panel">
     <div class="community-head">
       <div>
-        <div class="community-title">COMMUNITY BAR</div>
-        <div class="community-sub">Live chat for FNF engine modders using this site</div>
+        <div class="community-title" data-i18n="community.title">COMMUNITY BAR</div>
+        <div class="community-sub" data-i18n="community.sub">Live chat for FNF engine modders using this site</div>
       </div>
       <div class="community-meta">
         <span id="communityCount">0 people online</span>
@@ -1045,13 +1152,13 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
     </div>
     <div class="community-messages" id="communityMessages"></div>
     <div class="community-input-row">
-      <input type="text" id="communityInput" placeholder="Say something to the community..." maxlength="500">
-      <button id="communitySendBtn">SEND</button>
+      <input type="text" id="communityInput" data-i18n-placeholder="community.inputPlaceholder" placeholder="Say something to the community..." maxlength="500">
+      <button id="communitySendBtn" data-i18n="community.send">SEND</button>
     </div>
   </section>
 </div>
 
-<footer>FUNKIN' CODING — snippets are boilerplate, verify against your engine's API before shipping</footer>
+<footer data-i18n="footer.note">FUNKIN' CODING — snippets are boilerplate, verify against your engine's API before shipping</footer>
 </div>
 
 
@@ -1222,6 +1329,228 @@ const schema = {
     ]
   }
 };
+
+const schemaI18nPt = {
+  beatHit: {title:'Reação ao Beat', fields:{characterName:'Variável do personagem', beatEvery:'Disparar a cada N beats'}},
+  noteHit: {title:'Tipo de Nota Customizada', fields:{noteType:'String do tipo de nota', pointsBonus:'Pontuação bônus'}},
+  cameraZoom: {title:'Evento de Zoom da Câmera', fields:{zoomAmount:'Valor de zoom alvo', zoomDuration:'Disparar a cada N beats'}},
+  healthChange: {title:'Modificador de Vida', fields:{trigger:'Disparar em', amount:'Variação de vida'}},
+  customEvent: {title:'Evento de Música Customizado', fields:{eventName:'Nome do evento (do chart)'}},
+  boilerplate: {title:'Boilerplate de Script', fields:{scriptName:'Nome do arquivo de script'}},
+  ratingChange: {title:'Substituir Texto de Julgamento', fields:{ratingName:'Texto exibido', ratingImage:'Nome da animação de splash'}},
+  keybind: {title:'Verificação de Tecla Customizada', fields:{keyName:'Tecla (ex: R, F1, ESCAPE)'}},
+  discordPresence: {title:'Discord Rich Presence', fields:{details:'Linha de detalhes', state:'Linha de estado'}},
+  characterReposition: {title:'Reposicionar Personagem', fields:{characterName:'Variável do personagem', xOffset:'Deslocamento X', yOffset:'Deslocamento Y'}},
+  comboPopup: {title:'Popup de Marco de Combo', fields:{comboThreshold:'Contagem de combo', message:'Texto do popup'}},
+  shakeOnSick: {title:'Tremor de Tela em Nota Sick', fields:{shakeIntensity:'Intensidade do tremor', shakeDuration:'Duração do tremor (segundos)'}},
+  freezeFrame: {title:'Freeze Frame ao Errar', fields:{freezeDuration:'Duração do freeze (segundos)'}},
+  iconBop: {title:'Bop do Ícone de Vida', fields:{iconChar:'Variável do ícone (iconP1 / iconP2)'}},
+  noteSkinSwap: {title:'Troca de Note Skin', fields:{skinName:'Nome do note skin', triggerBeat:'Disparar no beat'}},
+  bgPropSpawn: {title:'Spawn de Prop de Fundo', fields:{propImage:'Nome do asset de imagem', xPos:'Posição X', yPos:'Posição Y'}},
+  lyricsDisplay: {title:'Exibição de Letra / Legenda', fields:{lyricText:'Linha de texto', triggerStep:'Disparar no step'}},
+  customSubstate: {title:'Popup de Substate Customizado', fields:{substateName:'Nome da classe do substate', keyName:'Tecla que abre'}},
+  scrollSpeedChange: {title:'Mudança de Velocidade de Scroll', fields:{newSpeed:'Nova velocidade de scroll', triggerBeat:'Disparar no beat'}},
+  forcedMiss: {title:'Forçar Erro de Nota', fields:{noteDirection:'Direção', triggerStep:'Disparar no step'}},
+  failScreenMessage: {title:'Mensagem Customizada de Fail Screen', fields:{message:'Texto da mensagem'}},
+  player2Toggle: {title:'Habilitar Controles do Player 2', fields:{enabled:'Permitir que o player 2 entre'}},
+  charAnimTrigger: {title:'Animação de Personagem de Fundo', fields:{characterName:'Variável do personagem', animName:'Nome da animação', triggerBeat:'Disparar no beat'}},
+  scoreMultiplierDisplay: {title:'Exibição de Multiplicador de Score', fields:{labelText:'Texto do label', triggerCombo:'Disparar no combo'}}
+};
+
+function schemaText(category){
+  const base = schema[category];
+  const tr = schemaI18nPt[category];
+  if(uiLang === 'pt' && tr){
+    return {
+      title: tr.title || base.title,
+      fields: base.fields.map(f => ({...f, label: (tr.fields && tr.fields[f.key]) || f.label}))
+    };
+  }
+  return base;
+}
+
+const translations = {
+  en: {
+    'header.tagline': "HScript / Lua snippet generator + tutorials for FNF engines",
+    'header.install': '⤓ INSTALL APP',
+    'tabs.generator': 'GENERATOR',
+    'tabs.library': 'CARTRIDGES',
+    'tabs.tutorials': 'TUTORIALS',
+    'tabs.ai': 'AI ASSISTANT',
+    'tabs.characters': 'CHARACTERS',
+    'tabs.community': 'COMMUNITY',
+    'engine.notePsych': 'HScript + Lua scripting, JSON character files',
+    'engine.noteVSlice': 'HScript-only scripting, JSON character files',
+    'gen.category': 'Snippet Category',
+    'gen.generate': 'GENERATE SNIPPET',
+    'actions.copy': 'COPY',
+    'actions.download': 'DOWNLOAD',
+    'library.heading': 'READY-MADE CARTRIDGES',
+    'tutorials.heading': 'TUTORIALS',
+    'ai.introBefore': 'Ask for anything — a snippet, a full multi-function script, a custom substate, an explanation of an API, help debugging something you paste in, or just a general question. Code comes back as ready',
+    'ai.introAfter': 'for your engine.',
+    'ai.askLabel': 'Ask anything',
+    'ai.placeholder': 'e.g. a full script that changes the camera zoom, note skin, and background character animation together every 16 beats — or just ask a question about the engine',
+    'ai.ask': 'ASK AI',
+    'ai.statusEmpty': 'Type something first.',
+    'ai.statusGenerating': 'generating...',
+    'ai.statusDone': 'done',
+    'ai.statusError': 'Something went wrong. Try again.',
+    'char.name': 'Character name',
+    'char.imagePath': 'Image path',
+    'char.assetPath': 'Asset path',
+    'char.healthicon': 'Health icon',
+    'char.renderType': 'Render type',
+    'char.flipX': 'Flip X',
+    'char.scale': 'Scale',
+    'char.version': 'Version',
+    'char.positionPsych': 'Position X / Y',
+    'char.positionVSlice': 'Offsets X / Y',
+    'char.cameraPsych': 'Camera Position X / Y',
+    'char.cameraVSlice': 'Camera Offsets X / Y',
+    'char.singDuration': 'Sing duration',
+    'char.noAntialiasing': 'No antialiasing',
+    'char.healthbarColor': 'Healthbar color (R, G, B)',
+    'char.deathOffset': 'Death camera offset X / Y (optional)',
+    'char.leaveBlank': 'leave blank to omit',
+    'char.animations': 'Animations',
+    'char.animState': 'State',
+    'char.animNamePrefix': 'Name / Prefix',
+    'char.animFps': 'FPS',
+    'char.animLoop': 'Loop',
+    'char.animOffX': 'Off X',
+    'char.animOffY': 'Off Y',
+    'char.animIndices': 'Indices',
+    'char.animAssetPath': 'Asset Path',
+    'char.addAnimation': '+ ADD ANIMATION',
+    'char.generate': 'GENERATE CHARACTER JSON',
+    'common.yes': 'Yes',
+    'common.no': 'No',
+    'community.title': 'COMMUNITY BAR',
+    'community.sub': 'Live chat for FNF engine modders using this site',
+    'community.inputPlaceholder': 'Say something to the community...',
+    'community.send': 'SEND',
+    'footer.note': "FUNKIN' CODING — snippets are boilerplate, verify against your engine's API before shipping",
+    'options.title': 'OPTIONS',
+    'options.language': 'Language'
+  },
+  pt: {
+    'header.tagline': 'Gerador de snippets HScript / Lua + tutoriais pras engines de FNF',
+    'header.install': '⤓ INSTALAR APP',
+    'tabs.generator': 'GERADOR',
+    'tabs.library': 'CARTRIDGES',
+    'tabs.tutorials': 'TUTORIAIS',
+    'tabs.ai': 'ASSISTENTE IA',
+    'tabs.characters': 'PERSONAGENS',
+    'tabs.community': 'COMUNIDADE',
+    'engine.notePsych': 'Scripts em HScript + Lua, arquivos de personagem em JSON',
+    'engine.noteVSlice': 'Scripts só em HScript, arquivos de personagem em JSON',
+    'gen.category': 'Categoria do Snippet',
+    'gen.generate': 'GERAR SNIPPET',
+    'actions.copy': 'COPIAR',
+    'actions.download': 'BAIXAR',
+    'library.heading': 'CARTRIDGES PRONTOS',
+    'tutorials.heading': 'TUTORIAIS',
+    'ai.introBefore': 'Pergunte qualquer coisa — um snippet, um script completo com várias funções, um substate customizado, uma explicação de API, ajuda pra debugar algo que você colar, ou só uma pergunta geral. O código volta pronto em',
+    'ai.introAfter': 'pra sua engine.',
+    'ai.askLabel': 'Pergunte qualquer coisa',
+    'ai.placeholder': 'ex: um script completo que muda o zoom da câmera, o note skin e a animação do personagem de fundo juntos a cada 16 beats — ou só uma pergunta sobre a engine',
+    'ai.ask': 'PERGUNTAR PRA IA',
+    'ai.statusEmpty': 'Digite algo primeiro.',
+    'ai.statusGenerating': 'gerando...',
+    'ai.statusDone': 'pronto',
+    'ai.statusError': 'Algo deu errado. Tenta de novo.',
+    'char.name': 'Nome do personagem',
+    'char.imagePath': 'Caminho da imagem',
+    'char.assetPath': 'Caminho do asset',
+    'char.healthicon': 'Ícone de vida',
+    'char.renderType': 'Tipo de renderização',
+    'char.flipX': 'Espelhar X',
+    'char.scale': 'Escala',
+    'char.version': 'Versão',
+    'char.positionPsych': 'Posição X / Y',
+    'char.positionVSlice': 'Offsets X / Y',
+    'char.cameraPsych': 'Posição da Câmera X / Y',
+    'char.cameraVSlice': 'Offsets da Câmera X / Y',
+    'char.singDuration': 'Duração do canto',
+    'char.noAntialiasing': 'Sem antialiasing',
+    'char.healthbarColor': 'Cor da barra de vida (R, G, B)',
+    'char.deathOffset': 'Offset de câmera na morte X / Y (opcional)',
+    'char.leaveBlank': 'deixe em branco pra omitir',
+    'char.animations': 'Animações',
+    'char.animState': 'Estado',
+    'char.animNamePrefix': 'Nome / Prefixo',
+    'char.animFps': 'FPS',
+    'char.animLoop': 'Loop',
+    'char.animOffX': 'Off X',
+    'char.animOffY': 'Off Y',
+    'char.animIndices': 'Índices',
+    'char.animAssetPath': 'Caminho do Asset',
+    'char.addAnimation': '+ ADICIONAR ANIMAÇÃO',
+    'char.generate': 'GERAR JSON DO PERSONAGEM',
+    'common.yes': 'Sim',
+    'common.no': 'Não',
+    'community.title': 'BARRA DA COMUNIDADE',
+    'community.sub': 'Chat ao vivo pra quem usa engines de FNF nesse site',
+    'community.inputPlaceholder': 'Diga algo pra comunidade...',
+    'community.send': 'ENVIAR',
+    'footer.note': "FUNKIN' CODING — os snippets são boilerplate, confira a API da sua engine antes de publicar",
+    'options.title': 'OPÇÕES',
+    'options.language': 'Idioma'
+  }
+};
+
+function t(key){
+  return (translations[uiLang] && translations[uiLang][key]) || translations.en[key] || key;
+}
+
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    el.setAttribute('placeholder', t(key));
+  });
+  document.documentElement.lang = uiLang === 'pt' ? 'pt-BR' : 'en';
+}
+
+function retranslateAnimRows(){
+  document.querySelectorAll('.anim-row').forEach(row => {
+    const labelInput = row.querySelector('.a-label');
+    if(labelInput) labelInput.placeholder = t('char.animNamePrefix');
+    const assetInput = row.querySelector('.a-assetpath');
+    if(assetInput) assetInput.placeholder = t('char.animAssetPath');
+    const loopSelect = row.querySelector('.a-loop');
+    if(loopSelect){
+      const current = loopSelect.value;
+      loopSelect.options[0].textContent = t('common.no');
+      loopSelect.options[1].textContent = t('common.yes');
+      loopSelect.value = current;
+    }
+  });
+}
+
+function applyLanguage(lang){
+  uiLang = (lang === 'pt') ? 'pt' : 'en';
+  try{ localStorage.setItem('fc_ui_lang', uiLang); } catch(err){}
+  window.FC_UI_LANG = uiLang;
+  applyStaticTranslations();
+  document.querySelectorAll('.lang-option-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.langOption === uiLang);
+  });
+  populateCategorySelect();
+  if(typeof categorySelect !== 'undefined' && categorySelect.value){
+    renderFields(categorySelect.value);
+    runGenerate();
+  }
+  if(typeof updateEngineNote === 'function') updateEngineNote();
+  if(typeof renderCharForm === 'function') renderCharForm();
+  if(typeof retranslateAnimRows === 'function') retranslateAnimRows();
+  if(typeof syncAiLangDisplay === 'function') syncAiLangDisplay();
+  window.dispatchEvent(new CustomEvent('fc-lang-changed', { detail: uiLang }));
+}
 
 function generate(lang, category, v){
   if(currentEngine === 'vslice'){
@@ -1583,17 +1912,26 @@ const codeOutput = document.getElementById('codeOutput');
 const langLabel = document.getElementById('langLabel');
 const categoryLabel = document.getElementById('categoryLabel');
 let currentLang = 'haxe';
+let uiLang = 'en';
 
-Object.keys(schema).forEach(key => {
-  const opt = document.createElement('option');
-  opt.value = key;
-  opt.textContent = schema[key].title;
-  categorySelect.appendChild(opt);
-});
+function populateCategorySelect(){
+  const currentValue = categorySelect.value;
+  categorySelect.innerHTML = '';
+  Object.keys(schema).forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = schemaText(key).title;
+    categorySelect.appendChild(opt);
+  });
+  if(currentValue){
+    categorySelect.value = currentValue;
+  }
+}
+populateCategorySelect();
 
 function renderFields(category){
   fieldsContainer.innerHTML = '';
-  schema[category].fields.forEach(f => {
+  schemaText(category).fields.forEach(f => {
     const label = document.createElement('span');
     label.className = 'field-label';
     label.textContent = f.label;
@@ -1665,15 +2003,19 @@ function setLang(lang){
   runGenerate();
 }
 
+function updateEngineNote(){
+  document.getElementById('engineNote').textContent = currentEngine === 'psych'
+    ? t('engine.notePsych')
+    : t('engine.noteVSlice');
+}
+
 function setEngine(engine){
   currentEngine = engine;
   document.body.classList.remove('engine-psych', 'engine-vslice');
   document.body.classList.add('engine-' + engine);
   document.getElementById('btnPsych').classList.toggle('active', engine === 'psych');
   document.getElementById('btnVSlice').classList.toggle('active', engine === 'vslice');
-  document.getElementById('engineNote').textContent = engine === 'psych'
-    ? 'HScript + Lua scripting, JSON character files'
-    : 'HScript-only scripting, JSON character files';
+  updateEngineNote();
   if(engine === 'vslice' && currentLang === 'lua'){
     setLang('haxe');
   }
@@ -1772,11 +2114,13 @@ const aiGenerateBtn = document.getElementById('aiGenerateBtn');
 const aiStatus = document.getElementById('aiStatus');
 const aiCodeOutput = document.getElementById('aiCodeOutput');
 const aiLangLabel = document.getElementById('aiLangLabel');
-const aiLangHint = document.getElementById('aiLangHint');
+
+const aiIntroText = document.getElementById('aiIntroText');
 
 function syncAiLangDisplay(){
   aiLangLabel.textContent = currentEngine === 'vslice' ? 'haxe (module)' : currentLang;
-  aiLangHint.textContent = currentEngine === 'vslice' ? 'V-Slice Module' : (currentLang === 'haxe' ? 'HScript' : 'Lua');
+  const hint = currentEngine === 'vslice' ? 'V-Slice Module' : (currentLang === 'haxe' ? 'HScript' : 'Lua');
+  aiIntroText.innerHTML = `${t('ai.introBefore')} <b id="aiLangHint">${hint}</b> ${t('ai.introAfter')}`;
 }
 
 const originalSetLang = setLang;
@@ -1794,19 +2138,22 @@ syncAiLangDisplay();
 async function generateWithAI(){
   const description = aiPrompt.value.trim();
   if(!description){
-    aiStatus.textContent = 'Type something first.';
+    aiStatus.textContent = t('ai.statusEmpty');
     aiStatus.className = 'ai-status error';
     return;
   }
   aiGenerateBtn.disabled = true;
-  aiStatus.innerHTML = '<span class="dot-flash"></span>generating...';
+  aiStatus.innerHTML = `<span class="dot-flash"></span>${t('ai.statusGenerating')}`;
   aiStatus.className = 'ai-status';
 
   const langName = currentLang === 'haxe' ? 'HScript (Psych Engine, Haxe-like syntax)' : 'Lua (Psych Engine Lua API)';
   const codeRules = currentEngine === 'vslice'
     ? `When the request calls for code, write production-ready Haxe for the V-Slice engine. Every script is a class that extends funkin.modding.module.Module, with a constructor calling super('ClassName', priority, {state: PlayState}) and one or more overridden event methods such as onCreate(event:ScriptEvent), onCreatePost(event:ScriptEvent), onUpdate(event:UpdateScriptEvent), onBeatHit(event:BeatHitScriptEvent), onStepHit(event:StepHitScriptEvent), onNoteHit(event:HitNoteScriptEvent), onNoteMiss(event:NoteScriptEvent), onSongEvent(event:SongEventScriptEvent), onStateChangeEnd(event:StateChangeScriptEvent), onDestroy(event:ScriptEvent), always calling super.methodName(event) first. Access game state through PlayState.instance (health, combo, currentStage, currentChart, camera via FlxG.camera), and persistent mod settings through Save.instance.modOptions with Save.instance.flush(). Include the exact import lines needed at the top.`
     : `When the request calls for code, write production-ready ${langName}. Use the standard Psych Engine callback functions (onCreate, onCreatePost, onUpdate, onBeatHit, onStepHit, onNoteHit/goodNoteHit, onNoteMiss, onEvent, onUpdateScore, onPause, onTimerCompleted, etc), tween/timer helpers (doTweenX, doTweenY, doTweenAlpha, runTimer), and property helpers (setProperty, getProperty, setPropertyFromGroup) where relevant. Match the real syntax of the target language exactly.`;
-  const systemPrompt = `You are the assistant built into Funkin' Coding, a site for Friday Night Funkin' engine modders. Answer whatever the person asks — that includes writing code, but also explaining an API, debugging a problem they paste in, comparing approaches, or just answering a general question, even one unrelated to modding. Reply directly with no filler preamble.
+  const replyLangInstruction = uiLang === 'pt'
+    ? 'Reply in Brazilian Portuguese, unless the person writes in a different language — then match their language instead. Code itself (identifiers, function names) stays in English as normal for the engine, only your prose changes.'
+    : 'Reply in English, unless the person writes in a different language — then match their language instead.';
+  const systemPrompt = `You are the assistant built into Funkin' Coding, a site for Friday Night Funkin' engine modders. Answer whatever the person asks — that includes writing code, but also explaining an API, debugging a problem they paste in, comparing approaches, or just answering a general question, even one unrelated to modding. Reply directly with no filler preamble. ${replyLangInstruction}
 
 ${codeRules} When writing code, declare tunable values as clearly named variables/fields at the top rather than hardcoding numbers inline, output it as a clean code block with no comments inside it, and keep prose around it brief. When the person is not asking for code, just answer in plain prose — don't force code into the answer. If a request is ambiguous, make the most reasonable choice and keep going rather than asking for clarification.`;
 
@@ -1829,10 +2176,10 @@ ${codeRules} When writing code, declare tunable values as clearly named variable
       throw new Error('empty response');
     }
     aiCodeOutput.textContent = reply;
-    aiStatus.textContent = 'done';
+    aiStatus.textContent = t('ai.statusDone');
     aiStatus.className = 'ai-status ok';
   } catch(err){
-    aiStatus.textContent = 'Something went wrong. Try again.';
+    aiStatus.textContent = t('ai.statusError');
     aiStatus.className = 'ai-status error';
   } finally {
     aiGenerateBtn.disabled = false;
@@ -1909,13 +2256,13 @@ function createAnimRow(data){
   row.className = 'anim-row';
   row.innerHTML = `
     <input class="a-key" type="text" placeholder="idle">
-    <input class="a-label" type="text" placeholder="name / prefix">
+    <input class="a-label" type="text" placeholder="${t('char.animNamePrefix')}">
     <input class="a-fps psych-only" type="text" placeholder="24">
-    <select class="a-loop"><option value="No">No</option><option value="Yes">Yes</option></select>
+    <select class="a-loop"><option value="No">${t('common.no')}</option><option value="Yes">${t('common.yes')}</option></select>
     <input class="a-offx" type="text" placeholder="0">
     <input class="a-offy" type="text" placeholder="0">
     <input class="a-indices psych-only" type="text" placeholder="1,2,3">
-    <input class="a-assetpath vslice-only" type="text" placeholder="optional">
+    <input class="a-assetpath vslice-only" type="text" placeholder="${t('char.animAssetPath')}">
     <button class="anim-remove" type="button">×</button>
   `;
   row.querySelector('.a-key').value = data.key || '';
@@ -2035,8 +2382,8 @@ function generateCharacterJSON(){
 }
 
 function renderCharForm(){
-  document.getElementById('posLabel').textContent = currentEngine === 'psych' ? 'Position X / Y' : 'Offsets X / Y';
-  document.getElementById('camLabel').textContent = currentEngine === 'psych' ? 'Camera Position X / Y' : 'Camera Offsets X / Y';
+  document.getElementById('posLabel').textContent = currentEngine === 'psych' ? t('char.positionPsych') : t('char.positionVSlice');
+  document.getElementById('camLabel').textContent = currentEngine === 'psych' ? t('char.cameraPsych') : t('char.cameraVSlice');
 }
 
 document.getElementById('generateCharBtn').addEventListener('click', generateCharacterJSON);
@@ -2061,6 +2408,36 @@ document.getElementById('charDownloadBtn').addEventListener('click', () => {
 loadDefaultAnims();
 renderCharForm();
 generateCharacterJSON();
+
+const optionsBtn = document.getElementById('optionsBtn');
+const optionsOverlay = document.getElementById('optionsOverlay');
+const optionsCloseBtn = document.getElementById('optionsCloseBtn');
+
+function openOptions(){
+  optionsOverlay.classList.add('open');
+}
+function closeOptions(){
+  optionsOverlay.classList.remove('open');
+}
+
+optionsBtn.addEventListener('click', openOptions);
+optionsCloseBtn.addEventListener('click', closeOptions);
+optionsOverlay.addEventListener('click', (e) => {
+  if(e.target === optionsOverlay) closeOptions();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape' && optionsOverlay.classList.contains('open')) closeOptions();
+});
+
+document.querySelectorAll('.lang-option-btn').forEach(btn => {
+  btn.addEventListener('click', () => applyLanguage(btn.dataset.langOption));
+});
+
+let savedLang = 'en';
+try{
+  savedLang = localStorage.getItem('fc_ui_lang') || 'en';
+} catch(err){}
+applyLanguage(savedLang);
 </script>
 <script src="./login.js"></script>
 <script src="./community.js"></script>
