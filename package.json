@@ -4,10 +4,30 @@
   "description": "Static site host + live community chat server for Funkin' Coding",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:exe": "pkg server.js --targets node20-win-x64 --output dist/funkin-coding.exe"
   },
   "dependencies": {
     "express": "^4.19.2",
     "ws": "^8.17.0"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.0.0"
+  },
+  "pkg": {
+    "assets": [
+      "index.html",
+      "project.js",
+      "login.js",
+      "community.js",
+      "manifest.json",
+      "sw.js",
+      "source/**/*",
+      "icons/**/*"
+    ],
+    "targets": [
+      "node20-win-x64"
+    ],
+    "outputPath": "dist"
   }
 }
