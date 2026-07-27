@@ -429,6 +429,138 @@ textarea#aiPrompt:focus{border-color:var(--accent);}
   animation:blink 1s steps(1) infinite;
 }
 
+.engine-bar{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:24px;
+  flex-wrap:wrap;
+}
+.engine-label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  letter-spacing:1.5px;
+  color:var(--dim);
+}
+.engine-switch{
+  display:flex;
+  border:1px solid var(--border);
+  border-radius:8px;
+  overflow:hidden;
+}
+.engine-switch button{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:.5px;
+  background:var(--panel);
+  border:none;
+  color:var(--dim);
+  padding:10px 18px;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.engine-switch button + button{border-left:1px solid var(--border);}
+.engine-switch button.active{background:var(--accent);color:#0b0b12;}
+.engine-note{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--dimmer);
+}
+
+body.engine-vslice #btnLua{display:none;}
+body.engine-vslice .switch-track{display:none;}
+
+.vslice-only{display:none;}
+body.engine-vslice .psych-only{display:none;}
+body.engine-vslice .vslice-only{display:block;}
+body.engine-vslice .vslice-only-inline{display:inline-flex;}
+
+.char-form{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+.char-form .field-full{grid-column:1 / -1;}
+@media(max-width:640px){.char-form{grid-template-columns:1fr;}}
+
+.anim-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.anim-row{
+  display:grid;
+  grid-template-columns:1fr 1fr 70px 80px 60px 60px 1fr 32px;
+  gap:6px;
+  align-items:center;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:6px;
+  padding:8px;
+}
+body.engine-vslice .anim-row{grid-template-columns:1fr 1fr 80px 60px 60px 1fr 32px;}
+.anim-row input, .anim-row select{
+  background:var(--panel);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  padding:7px 8px;
+  border-radius:4px;
+  outline:none;
+  width:100%;
+}
+.anim-row input:focus, .anim-row select:focus{border-color:var(--accent);}
+.anim-remove{
+  background:none;
+  border:1px solid var(--border);
+  color:var(--dim);
+  border-radius:4px;
+  cursor:pointer;
+  font-size:14px;
+  padding:6px;
+  transition:all .2s ease;
+}
+.anim-remove:hover{border-color:#ff6b6b;color:#ff6b6b;}
+.anim-header{
+  display:grid;
+  grid-template-columns:1fr 1fr 70px 80px 60px 60px 1fr 32px;
+  gap:6px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;
+  letter-spacing:.5px;
+  color:var(--dimmer);
+  text-transform:uppercase;
+  padding:0 8px;
+}
+body.engine-vslice .anim-header{grid-template-columns:1fr 1fr 80px 60px 60px 1fr 32px;}
+#addAnimBtn{
+  margin-top:10px;
+  background:transparent;
+  border:1px dashed var(--border);
+  color:var(--dim);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  padding:10px;
+  border-radius:6px;
+  cursor:pointer;
+  width:100%;
+  transition:all .2s ease;
+}
+#addAnimBtn:hover{border-color:var(--accent);color:var(--accent);}
+#generateCharBtn{
+  width:100%;
+  margin-top:22px;
+  background:var(--accent);
+  border:none;
+  color:#0b0b12;
+  font-family:'JetBrains Mono',monospace;
+  font-weight:700;
+  letter-spacing:1.5px;
+  font-size:13px;
+  padding:13px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
 footer{
   margin-top:20px;
   text-align:center;
@@ -439,7 +571,7 @@ footer{
 }
 </style>
 </head>
-<body class="lang-haxe">
+<body class="lang-haxe engine-psych">
 <div class="wrap">
 
 <header class="site-header">
@@ -458,11 +590,21 @@ footer{
   <button id="installBtn">⤓ INSTALL APP</button>
 </header>
 
+<div class="engine-bar">
+  <span class="engine-label">ENGINE</span>
+  <div class="engine-switch" id="engineSwitch">
+    <button data-engine="psych" class="active" id="btnPsych">PSYCH ENGINE</button>
+    <button data-engine="vslice" id="btnVSlice">V-SLICE</button>
+  </div>
+  <span class="engine-note" id="engineNote">HScript + Lua scripting, JSON character files</span>
+</div>
+
 <div class="tabs">
   <button class="tab-btn active" data-tab="generator">GENERATOR</button>
   <button class="tab-btn" data-tab="library">CARTRIDGES</button>
   <button class="tab-btn" data-tab="tutorials">TUTORIALS</button>
   <button class="tab-btn" data-tab="ai">AI SCRIPTS</button>
+  <button class="tab-btn" data-tab="characters">CHARACTERS</button>
 </div>
 
 <div class="tab-panel active" id="tab-generator">
@@ -524,8 +666,87 @@ footer{
   </section>
 </div>
 
+<div class="tab-panel" id="tab-characters">
+  <section class="workspace" style="grid-template-columns:1fr;">
+    <div class="panel form-panel">
+      <div class="char-form">
+        <div class="field-full"><span class="field-label" style="margin-top:0">Character name</span><input type="text" id="charName" value="Boyfriend"></div>
+
+        <div class="psych-only"><span class="field-label">Image path</span><input type="text" id="charImage" value="characters/BOYFRIEND"></div>
+        <div class="vslice-only"><span class="field-label">Asset path</span><input type="text" id="charAssetPath" value="shared:characters/bf"></div>
+
+        <div class="psych-only"><span class="field-label">Health icon</span><input type="text" id="charHealthicon" value="bf"></div>
+        <div class="vslice-only"><span class="field-label">Render type</span><input type="text" id="charRenderType" value="multianimateatlas"></div>
+
+        <div><span class="field-label">Flip X</span><select id="charFlipX"><option>Yes</option><option>No</option></select></div>
+        <div class="psych-only"><span class="field-label">Scale</span><input type="text" id="charScale" value="1"></div>
+        <div class="vslice-only"><span class="field-label">Version</span><input type="text" id="charVersion" value="1.0.0"></div>
+
+        <div><span class="field-label" id="posLabel">Position X / Y</span>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="charPosX" value="0">
+            <input type="text" id="charPosY" value="350">
+          </div>
+        </div>
+        <div><span class="field-label" id="camLabel">Camera Offset X / Y</span>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="charCamX" value="0">
+            <input type="text" id="charCamY" value="0">
+          </div>
+        </div>
+
+        <div class="psych-only"><span class="field-label">Sing duration</span><input type="text" id="charSingDuration" value="4"></div>
+        <div class="psych-only"><span class="field-label">No antialiasing</span><select id="charNoAA"><option>No</option><option>Yes</option></select></div>
+
+        <div class="psych-only field-full"><span class="field-label">Healthbar color (R, G, B)</span>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="charColorR" value="49">
+            <input type="text" id="charColorG" value="176">
+            <input type="text" id="charColorB" value="209">
+          </div>
+        </div>
+
+        <div class="vslice-only field-full"><span class="field-label">Death camera offset X / Y (optional)</span>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="charDeathX" placeholder="leave blank to omit">
+            <input type="text" id="charDeathY" placeholder="leave blank to omit">
+          </div>
+        </div>
+      </div>
+
+      <span class="field-label">Animations</span>
+      <div class="anim-header">
+        <span>State</span>
+        <span>Name / Prefix</span>
+        <span class="psych-only">FPS</span>
+        <span>Loop</span>
+        <span>Off X</span>
+        <span>Off Y</span>
+        <span class="psych-only">Indices</span>
+        <span class="vslice-only">Asset Path</span>
+        <span></span>
+      </div>
+      <div class="anim-list" id="animList"></div>
+      <button id="addAnimBtn">+ ADD ANIMATION</button>
+      <button id="generateCharBtn">GENERATE CHARACTER JSON</button>
+    </div>
+
+    <div class="panel output-panel">
+      <div class="terminal-header">
+        <span class="cmd-line">$ fc --character --engine=<b id="charEngineLabel">psych</b></span>
+        <div class="term-actions">
+          <button id="charCopyBtn">COPY</button>
+          <button id="charDownloadBtn">DOWNLOAD</button>
+        </div>
+      </div>
+      <pre class="code-output"><code id="charCodeOutput"></code></pre>
+    </div>
+  </section>
+</div>
+
 <footer>FUNKIN' CODING — snippets are boilerplate, verify against your engine's API before shipping</footer>
 </div>
+
 
 <script>
 const schema = {
@@ -970,14 +1191,36 @@ function runGenerate(){
   typeOut(code);
 }
 
+let currentEngine = 'psych';
+
 function setLang(lang){
   currentLang = lang;
-  document.body.className = 'lang-' + lang;
+  document.body.classList.remove('lang-haxe', 'lang-lua');
+  document.body.classList.add('lang-' + lang);
   document.getElementById('btnHaxe').classList.toggle('active', lang === 'haxe');
   document.getElementById('btnLua').classList.toggle('active', lang === 'lua');
   langLabel.textContent = lang;
   runGenerate();
 }
+
+function setEngine(engine){
+  currentEngine = engine;
+  document.body.classList.remove('engine-psych', 'engine-vslice');
+  document.body.classList.add('engine-' + engine);
+  document.getElementById('btnPsych').classList.toggle('active', engine === 'psych');
+  document.getElementById('btnVSlice').classList.toggle('active', engine === 'vslice');
+  document.getElementById('engineNote').textContent = engine === 'psych'
+    ? 'HScript + Lua scripting, JSON character files'
+    : 'HScript-only scripting, JSON character files';
+  if(engine === 'vslice' && currentLang === 'lua'){
+    setLang('haxe');
+  }
+  document.getElementById('charEngineLabel').textContent = engine;
+  renderCharForm();
+}
+
+document.getElementById('btnPsych').addEventListener('click', () => setEngine('psych'));
+document.getElementById('btnVSlice').addEventListener('click', () => setEngine('vslice'));
 
 categorySelect.addEventListener('change', () => {
   renderFields(categorySelect.value);
@@ -1167,6 +1410,167 @@ installBtn.addEventListener('click', async () => {
 window.addEventListener('appinstalled', () => {
   installBtn.classList.remove('visible');
 });
+
+const animList = document.getElementById('animList');
+
+function createAnimRow(data){
+  data = data || {};
+  const row = document.createElement('div');
+  row.className = 'anim-row';
+  row.innerHTML = `
+    <input class="a-key" type="text" placeholder="idle">
+    <input class="a-label" type="text" placeholder="name / prefix">
+    <input class="a-fps psych-only" type="text" placeholder="24">
+    <select class="a-loop"><option value="No">No</option><option value="Yes">Yes</option></select>
+    <input class="a-offx" type="text" placeholder="0">
+    <input class="a-offy" type="text" placeholder="0">
+    <input class="a-indices psych-only" type="text" placeholder="1,2,3">
+    <input class="a-assetpath vslice-only" type="text" placeholder="optional">
+    <button class="anim-remove" type="button">×</button>
+  `;
+  row.querySelector('.a-key').value = data.key || '';
+  row.querySelector('.a-label').value = data.label || '';
+  row.querySelector('.a-fps').value = data.fps || '24';
+  row.querySelector('.a-loop').value = data.loop || 'No';
+  row.querySelector('.a-offx').value = data.offx != null ? data.offx : '0';
+  row.querySelector('.a-offy').value = data.offy != null ? data.offy : '0';
+  row.querySelector('.a-indices').value = data.indices || '';
+  row.querySelector('.a-assetpath').value = data.assetpath || '';
+  row.querySelector('.anim-remove').addEventListener('click', () => row.remove());
+  animList.appendChild(row);
+}
+
+function loadDefaultAnims(){
+  animList.innerHTML = '';
+  const defaults = [
+    {key:'idle', label:'Idle', offx:0, offy:0},
+    {key:'singLEFT', label:'Left', offx:0, offy:0},
+    {key:'singDOWN', label:'Down', offx:0, offy:0},
+    {key:'singUP', label:'Up', offx:0, offy:0},
+    {key:'singRIGHT', label:'Right', offx:0, offy:0},
+    {key:'singLEFTmiss', label:'Left Miss', offx:0, offy:0},
+    {key:'singDOWNmiss', label:'Down Miss', offx:0, offy:0},
+    {key:'singUPmiss', label:'Up Miss', offx:0, offy:0},
+    {key:'singRIGHTmiss', label:'Right Miss', offx:0, offy:0}
+  ];
+  defaults.forEach(d => createAnimRow(d));
+}
+
+document.getElementById('addAnimBtn').addEventListener('click', () => createAnimRow());
+
+function boolFromSelect(val){ return val === 'Yes'; }
+
+function charTypeOut(text){
+  const el = document.getElementById('charCodeOutput');
+  el.textContent = '';
+  let i = 0;
+  const speed = Math.max(1, Math.floor(200 / text.length));
+  const interval = setInterval(() => {
+    el.textContent = text.slice(0, i) + '▌';
+    i++;
+    if(i > text.length){
+      clearInterval(interval);
+      el.textContent = text;
+    }
+  }, speed);
+}
+
+function generateCharacterJSON(){
+  const engine = currentEngine;
+  const rows = Array.from(document.querySelectorAll('.anim-row')).map(row => ({
+    key: row.querySelector('.a-key').value.trim(),
+    label: row.querySelector('.a-label').value.trim(),
+    fps: row.querySelector('.a-fps').value.trim(),
+    loop: row.querySelector('.a-loop').value,
+    offx: row.querySelector('.a-offx').value.trim(),
+    offy: row.querySelector('.a-offy').value.trim(),
+    indices: row.querySelector('.a-indices').value.trim(),
+    assetpath: row.querySelector('.a-assetpath').value.trim()
+  })).filter(r => r.key);
+
+  let obj;
+
+  if(engine === 'psych'){
+    obj = {
+      animations: rows.map(r => ({
+        loop: boolFromSelect(r.loop),
+        offsets: [Number(r.offx) || 0, Number(r.offy) || 0],
+        anim: r.key,
+        fps: Number(r.fps) || 24,
+        name: r.label || r.key,
+        indices: r.indices ? r.indices.split(',').map(n => Number(n.trim())).filter(n => !isNaN(n)) : []
+      })),
+      vocals_file: '',
+      no_antialiasing: boolFromSelect(document.getElementById('charNoAA').value),
+      image: document.getElementById('charImage').value.trim(),
+      position: [Number(document.getElementById('charPosX').value) || 0, Number(document.getElementById('charPosY').value) || 0],
+      healthicon: document.getElementById('charHealthicon').value.trim(),
+      flip_x: boolFromSelect(document.getElementById('charFlipX').value),
+      healthbar_colors: [
+        Number(document.getElementById('charColorR').value) || 0,
+        Number(document.getElementById('charColorG').value) || 0,
+        Number(document.getElementById('charColorB').value) || 0
+      ],
+      camera_position: [Number(document.getElementById('charCamX').value) || 0, Number(document.getElementById('charCamY').value) || 0],
+      sing_duration: Number(document.getElementById('charSingDuration').value) || 4,
+      scale: Number(document.getElementById('charScale').value) || 1
+    };
+  } else {
+    obj = {
+      version: document.getElementById('charVersion').value.trim() || '1.0.0',
+      name: document.getElementById('charName').value.trim(),
+      renderType: document.getElementById('charRenderType').value.trim(),
+      assetPath: document.getElementById('charAssetPath').value.trim(),
+      flipX: boolFromSelect(document.getElementById('charFlipX').value),
+      offsets: [Number(document.getElementById('charPosX').value) || 0, Number(document.getElementById('charPosY').value) || 0],
+      cameraOffsets: [Number(document.getElementById('charCamX').value) || 0, Number(document.getElementById('charCamY').value) || 0]
+    };
+    const deathX = document.getElementById('charDeathX').value.trim();
+    const deathY = document.getElementById('charDeathY').value.trim();
+    if(deathX !== '' || deathY !== ''){
+      obj.death = { cameraOffsets: [Number(deathX) || 0, Number(deathY) || 0] };
+    }
+    obj.animations = rows.map(r => {
+      const anim = { name: r.key, prefix: r.label || r.key };
+      if(r.assetpath) anim.assetPath = r.assetpath;
+      if(r.loop === 'Yes') anim.looped = true;
+      if(r.offx !== '' || r.offy !== ''){
+        anim.offsets = [Number(r.offx) || 0, Number(r.offy) || 0];
+      }
+      return anim;
+    });
+  }
+
+  charTypeOut(JSON.stringify(obj, null, 2));
+}
+
+function renderCharForm(){
+  document.getElementById('posLabel').textContent = currentEngine === 'psych' ? 'Position X / Y' : 'Offsets X / Y';
+  document.getElementById('camLabel').textContent = currentEngine === 'psych' ? 'Camera Position X / Y' : 'Camera Offsets X / Y';
+}
+
+document.getElementById('generateCharBtn').addEventListener('click', generateCharacterJSON);
+
+document.getElementById('charCopyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('charCodeOutput').textContent);
+  const btn = document.getElementById('charCopyBtn');
+  const old = btn.textContent;
+  btn.textContent = 'COPIED';
+  setTimeout(() => btn.textContent = old, 1200);
+});
+
+document.getElementById('charDownloadBtn').addEventListener('click', () => {
+  const name = document.getElementById('charName').value.trim() || 'character';
+  const blob = new Blob([document.getElementById('charCodeOutput').textContent], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${name}.json`;
+  a.click();
+});
+
+loadDefaultAnims();
+renderCharForm();
+generateCharacterJSON();
 </script>
 </body>
 </html>
