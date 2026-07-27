@@ -1,9 +1,11 @@
-const CACHE_VERSION = 'v6';
+const CACHE_VERSION = 'v7';
 const CACHE_NAME = `funkin-coding-${CACHE_VERSION}`;
 
 const PRECACHE_ASSETS = [
   './',
   './index.html',
+  './project.js',
+  './source/Main.js',
   './login.js',
   './community.js',
   './manifest.json',
