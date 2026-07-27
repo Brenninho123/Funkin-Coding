@@ -2,7 +2,17 @@
   const WS_PATH = '/ws/community';
   let socket = null;
   let reconnectDelay = 1500;
-  let offlineNoticeTimer = null;
+  let lastStatusState = 'connecting';
+  let lastUserCount = 0;
+
+  const STATUS_TEXT = {
+    en: { online: 'ONLINE', offline: 'OFFLINE — retrying', connecting: 'CONNECTING…' },
+    pt: { online: 'ONLINE', offline: 'OFFLINE — reconectando', connecting: 'CONECTANDO…' }
+  };
+
+  function currentUiLang(){
+    return window.FC_UI_LANG === 'pt' ? 'pt' : 'en';
+  }
 
   function getIdentity(){
     const user = window.FunkinAuth && window.FunkinAuth.getCurrentUser ? window.FunkinAuth.getCurrentUser() : null;
@@ -21,25 +31,29 @@
   }
 
   function setStatus(state){
+    lastStatusState = state;
     const el = document.getElementById('communityStatus');
     if(!el) return;
     el.classList.remove('online', 'offline', 'connecting');
-    if(state === 'online'){
-      el.textContent = 'ONLINE';
-      el.classList.add('online');
-    } else if(state === 'offline'){
-      el.textContent = 'OFFLINE — retrying';
-      el.classList.add('offline');
-    } else {
-      el.textContent = 'CONNECTING…';
-      el.classList.add('connecting');
-    }
+    el.textContent = STATUS_TEXT[currentUiLang()][state] || STATUS_TEXT.en[state];
+    el.classList.add(state);
   }
 
   function updateUserCount(count){
+    lastUserCount = count;
     const el = document.getElementById('communityCount');
-    if(el) el.textContent = count + (count === 1 ? ' person online' : ' people online');
+    if(!el) return;
+    if(currentUiLang() === 'pt'){
+      el.textContent = count + (count === 1 ? ' pessoa online' : ' pessoas online');
+    } else {
+      el.textContent = count + (count === 1 ? ' person online' : ' people online');
+    }
   }
+
+  window.addEventListener('fc-lang-changed', () => {
+    setStatus(lastStatusState);
+    updateUserCount(lastUserCount);
+  });
 
   function formatTime(ts){
     const d = new Date(ts);
@@ -111,7 +125,9 @@
     if(!historyMessages.length){
       const empty = document.createElement('div');
       empty.className = 'community-empty';
-      empty.textContent = 'No messages yet — be the first to say something.';
+      empty.textContent = currentUiLang() === 'pt'
+        ? 'Ainda não tem mensagens — seja o primeiro a falar algo.'
+        : 'No messages yet — be the first to say something.';
       list.appendChild(empty);
     } else {
       historyMessages.forEach(msg => list.appendChild(messageNode(msg)));
@@ -132,7 +148,6 @@
     socket.addEventListener('open', () => {
       setStatus('online');
       reconnectDelay = 1500;
-      clearTimeout(offlineNoticeTimer);
     });
 
     socket.addEventListener('message', (event) => {
