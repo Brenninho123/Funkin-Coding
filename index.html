@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Funkin' Coding</title>
+<title>Funkin' Coding — HScript / Lua generator for FNF engines</title>
+<meta name="description" content="Code generator, script library, and live community for Friday Night Funkin' engine modders. Supports Psych Engine (HScript + Lua) and V-Slice.">
+<meta property="og:title" content="Funkin' Coding">
+<meta property="og:description" content="Code generator, script library, and live community for Friday Night Funkin' engine modders — Psych Engine and V-Slice.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="./icons/icon-512.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Funkin' Coding">
+<meta name="twitter:description" content="Code generator, script library, and live community for FNF engine modders.">
+<meta name="twitter:image" content="./icons/icon-512.png">
 <link rel="manifest" href="./manifest.json">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="./project.js"></script>
@@ -434,6 +443,37 @@ select:focus, input:focus{border-color:var(--accent);}
   color:var(--dim);
   margin-bottom:20px;
 }
+.library-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:20px;
+}
+.library-head h2{margin-bottom:0;}
+.library-search{
+  background:var(--panel);
+  border:1px solid var(--border);
+  color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  padding:9px 14px;
+  border-radius:20px;
+  outline:none;
+  width:220px;
+  transition:border-color .2s ease;
+}
+.library-search:focus{border-color:var(--accent);}
+.cartridge-empty{
+  display:none;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  color:var(--dimmer);
+  text-align:center;
+  padding:40px 0;
+}
+.cartridge-empty.visible{display:block;}
 .cartridge-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
@@ -965,7 +1005,7 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
   <button id="optionsBtn" class="icon-btn" type="button" aria-label="Options" title="Options">⚙</button>
 </header>
 
-<div class="options-overlay" id="optionsOverlay">
+<div class="options-overlay" id="optionsOverlay" aria-hidden="true">
   <div class="options-modal">
     <div class="options-modal-head">
       <span data-i18n="options.title">OPTIONS</span>
@@ -1016,15 +1056,19 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
           <button id="downloadBtn" data-i18n="actions.download">DOWNLOAD</button>
         </div>
       </div>
-      <pre class="code-output"><code id="codeOutput"></code></pre>
+      <pre class="code-output" aria-live="polite"><code id="codeOutput"></code></pre>
     </div>
   </section>
 </div>
 
 <div class="tab-panel" id="tab-library">
   <section class="library">
-    <h2 data-i18n="library.heading">READY-MADE CARTRIDGES</h2>
+    <div class="library-head">
+      <h2 data-i18n="library.heading">READY-MADE CARTRIDGES</h2>
+      <input type="text" id="cartridgeSearch" class="library-search" data-i18n-placeholder="library.search" placeholder="Search cartridges...">
+    </div>
     <div class="cartridge-grid" id="cartridgeGrid"></div>
+    <div class="cartridge-empty" id="cartridgeEmpty" data-i18n="library.noResults">No cartridges match your search.</div>
   </section>
 </div>
 
@@ -1053,7 +1097,7 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
           <button id="aiDownloadBtn" data-i18n="actions.download">DOWNLOAD</button>
         </div>
       </div>
-      <pre class="code-output"><code id="aiCodeOutput">// the answer will appear here</code></pre>
+      <pre class="code-output" aria-live="polite"><code id="aiCodeOutput">// the answer will appear here</code></pre>
     </div>
   </section>
 </div>
@@ -1133,7 +1177,7 @@ body.engine-vslice .anim-scroll .anim-header, body.engine-vslice .anim-scroll .a
           <button id="charDownloadBtn" data-i18n="actions.download">DOWNLOAD</button>
         </div>
       </div>
-      <pre class="code-output"><code id="charCodeOutput"></code></pre>
+      <pre class="code-output" aria-live="polite"><code id="charCodeOutput"></code></pre>
     </div>
   </section>
 </div>
@@ -1387,6 +1431,8 @@ const translations = {
     'actions.copy': 'COPY',
     'actions.download': 'DOWNLOAD',
     'library.heading': 'READY-MADE CARTRIDGES',
+    'library.search': 'Search cartridges...',
+    'library.noResults': 'No cartridges match your search.',
     'tutorials.heading': 'TUTORIALS',
     'ai.introBefore': 'Ask for anything — a snippet, a full multi-function script, a custom substate, an explanation of an API, help debugging something you paste in, or just a general question. Code comes back as ready',
     'ai.introAfter': 'for your engine.',
@@ -1451,6 +1497,8 @@ const translations = {
     'actions.copy': 'COPIAR',
     'actions.download': 'BAIXAR',
     'library.heading': 'CARTRIDGES PRONTOS',
+    'library.search': 'Buscar cartridges...',
+    'library.noResults': 'Nenhum cartridge encontrado.',
     'tutorials.heading': 'TUTORIAIS',
     'ai.introBefore': 'Pergunte qualquer coisa — um snippet, um script completo com várias funções, um substate customizado, uma explicação de API, ajuda pra debugar algo que você colar, ou só uma pergunta geral. O código volta pronto em',
     'ai.introAfter': 'pra sua engine.',
@@ -2055,7 +2103,10 @@ document.getElementById('downloadBtn').addEventListener('click', () => {
 });
 
 const cartridgeGrid = document.getElementById('cartridgeGrid');
-cartridges.forEach(c => {
+const cartridgeEmpty = document.getElementById('cartridgeEmpty');
+const cartridgeSearch = document.getElementById('cartridgeSearch');
+
+function buildCartridgeCard(c){
   const card = document.createElement('div');
   card.className = 'cartridge';
   card.style.setProperty('--card-accent', c.lang === 'haxe' ? 'var(--haxe)' : 'var(--lua)');
@@ -2071,8 +2122,25 @@ cartridges.forEach(c => {
     categoryLabel.textContent = c.title.toLowerCase().replace(/\s+/g, '-');
     typeOut(c.code);
   });
-  cartridgeGrid.appendChild(card);
-});
+  return card;
+}
+
+function renderCartridges(filterTerm){
+  const term = (filterTerm || '').trim().toLowerCase();
+  cartridgeGrid.innerHTML = '';
+  const filtered = term
+    ? cartridges.filter(c =>
+        c.title.toLowerCase().includes(term) ||
+        c.desc.toLowerCase().includes(term) ||
+        c.tag.toLowerCase().includes(term)
+      )
+    : cartridges;
+  filtered.forEach(c => cartridgeGrid.appendChild(buildCartridgeCard(c)));
+  cartridgeEmpty.classList.toggle('visible', filtered.length === 0);
+}
+
+cartridgeSearch.addEventListener('input', () => renderCartridges(cartridgeSearch.value));
+renderCartridges();
 
 const tutList = document.getElementById('tutList');
 tutorials.forEach((t, idx) => {
@@ -2104,6 +2172,18 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+  btn.addEventListener('keydown', (e) => {
+    const tabs = Array.from(document.querySelectorAll('.tab-btn'));
+    const idx = tabs.indexOf(btn);
+    if(e.key === 'ArrowRight' || e.key === 'ArrowLeft'){
+      e.preventDefault();
+      const nextIdx = e.key === 'ArrowRight'
+        ? (idx + 1) % tabs.length
+        : (idx - 1 + tabs.length) % tabs.length;
+      tabs[nextIdx].focus();
+      tabs[nextIdx].click();
+    }
   });
 });
 
@@ -2414,12 +2494,37 @@ const optionsBtn = document.getElementById('optionsBtn');
 const optionsOverlay = document.getElementById('optionsOverlay');
 const optionsCloseBtn = document.getElementById('optionsCloseBtn');
 
+let lastFocusedBeforeOptions = null;
+
 function openOptions(){
+  lastFocusedBeforeOptions = document.activeElement;
   optionsOverlay.classList.add('open');
+  optionsOverlay.setAttribute('aria-hidden', 'false');
+  const firstFocusable = optionsOverlay.querySelector('.lang-option-btn, .options-close');
+  if(firstFocusable) firstFocusable.focus();
 }
 function closeOptions(){
   optionsOverlay.classList.remove('open');
+  optionsOverlay.setAttribute('aria-hidden', 'true');
+  if(lastFocusedBeforeOptions && typeof lastFocusedBeforeOptions.focus === 'function'){
+    lastFocusedBeforeOptions.focus();
+  }
 }
+
+optionsOverlay.addEventListener('keydown', (e) => {
+  if(e.key !== 'Tab') return;
+  const focusables = Array.from(optionsOverlay.querySelectorAll('button'));
+  if(!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if(e.shiftKey && document.activeElement === first){
+    e.preventDefault();
+    last.focus();
+  } else if(!e.shiftKey && document.activeElement === last){
+    e.preventDefault();
+    first.focus();
+  }
+});
 
 optionsBtn.addEventListener('click', openOptions);
 optionsCloseBtn.addEventListener('click', closeOptions);
